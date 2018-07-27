@@ -1,0 +1,87 @@
+@font-face {
+    font-family: 'Benton Sans Light';
+    src: url(./fonts/BentonSans-Light.woff);
+    font-style: normal;
+    font-weight: 100;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    color: #585858;
+    border: 0;
+}
+
+.icontainer {
+    font-size: 18px;
+    background: #FAFAFA;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.box {
+    background: #ffffff;
+    width: 1500px;
+    margin: 20px;
+    display: flex;
+    box-shadow: 2px 4px 8px rgba(102, 162, 222, 0.15);
+}
+
+.left {
+    background: linear-gradient(to bottom left, #02B3A4, #66A2DE);
+    padding: 40px;
+    width: 450px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    font-size: 20px;
+    font-family: 'Benton Sans Light', 'Segoe UI Light', sans-serif;
+}
+
+.right {
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.iheader {
+    font-size: 64px;
+    font-family: 'Bookman Old Style', sans-serif;
+    margin: 10px 0px;
+    line-height: 54px;
+}
+
+.big {
+    font-size: 28px;
+    width: 100%;
+    margin: 5px 0px;
+}
+
+a {
+    color: #02B3A4;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.gh {
+    text-align: center;
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}

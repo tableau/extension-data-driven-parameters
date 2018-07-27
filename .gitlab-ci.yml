@@ -1,0 +1,8 @@
+image: artifactory.prod.tableautools.com:6555/browser-clients/node-yarn-sharedchromedeps:latest
+
+build:
+  stage: build
+  script:
+    - yarn run build
+  tags:
+    - nerv-aws-docker-linux
