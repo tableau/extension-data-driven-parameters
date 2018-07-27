@@ -3,9 +3,7 @@ This extension allows you to add a parameter to a Tableau dashboard whose domain
 
 ## Installing the Extension
 
-Download and install the Beta 2 version of Tableau Desktop from the [Tableau Prerelease Site](https://prerelease.tableau.com) site. 
-
-Download the Data-Driven Parameter [manifest file](https://keshiarose.github.io/Date-Updater-React/DateUpdater.trex). 
+Download the Data-Driven Parameter [manifest file](https://tableau.github.io/extension-data-driven-parameters/DataDrivenParametersSummary.trex). 
 
 ## Using the Extension
 1. Create an open input (All) parameter with a data type matching the field you want to use to populate it.
