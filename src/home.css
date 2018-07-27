@@ -26,7 +26,7 @@ body {
 
 .box {
     background: #ffffff;
-    width: 1500px;
+    max-width: 1250px;
     margin: 20px;
     display: flex;
     box-shadow: 2px 4px 8px rgba(102, 162, 222, 0.15);
