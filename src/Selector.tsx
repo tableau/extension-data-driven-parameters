@@ -15,11 +15,11 @@ export interface SelectorProps {
 // Shows if setting has not yet been configured
 export const Selector: React.SFC<SelectorProps> = (props) => {
     const dropdownSelectProps: DropdownSelectProps = {
+        className: 'dropdown-select',
         disabled: !props.enabled,
         kind: 'line',
         onChange: props.onChange,
         onSelect: props.onChange,
-        style: { flex: 1, marginLeft: 0, width: '100%' },
         value: props.selected,
     };
 

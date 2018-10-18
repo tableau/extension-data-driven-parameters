@@ -83,3 +83,9 @@ a:hover {
     text-align: center;
     width: 100%;
 }
+
+.dropdown-select {
+    flex: 1;
+    margin-left: 0;
+    width: '100%';
+}
