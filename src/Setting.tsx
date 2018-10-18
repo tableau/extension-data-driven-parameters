@@ -1,21 +1,49 @@
 import * as React from 'react';
-import Selected from './Selected';
-import Selector from './Selector';
+
+import { Selected, SelectedProps } from './Selected';
+import { Selector, SelectorProps } from './Selector';
 
 declare global {
     interface Window { tableau: any; }
 }
 
-// An individual setting. Chnges based on if setting is set or not
-class Setting extends React.Component<any, any> {
-    public render() {
-        return (
-            <div className='select'>
-                <p>Select a {this.props.selecting}</p>
-                { this.props.config ? <Selected selecting={this.props.selecting} selected={this.props.selected} nextconfig={this.props.nextconfig} onClear={this.props.onClear} /> : <Selector selecting={this.props.selecting} selected={this.props.selected} onClick={this.props.onClick} config={this.props.config} enabled={this.props.enabled} list={this.props.list} onChange={this.props.onChange} /> }
-            </div>
-        )
-    }
+export interface SettingsProps {
+    config: boolean;
+    enabled: boolean;
+    list: string[];
+    nextConfig?: boolean;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onClear: () => void;
+    onClick: () => void;
+    selected: string;
+    selecting: string;
 }
 
-export default Setting;
+// An individual setting. Changes based upon setting be set or not
+export const Setting: React.SFC<SettingsProps> = (props) => {
+    const selectedProps: SelectedProps = {
+        nextConfig: props.nextConfig,
+        onClear: props.onClear,
+        selected: props.selected,
+        selecting: props.selecting,
+    }
+
+    const selectorProps: SelectorProps = {
+        config: props.config,
+        enabled: props.enabled,
+        list: props.list,
+        onChange: props.onChange,
+        onClick: props.onClick,
+        selected: props.selected,
+        selecting: props.selecting,
+    }
+
+    return (
+        <div className='select'>
+            <p>Select a {props.selecting}</p>
+            {props.config ? <Selected {...selectedProps} /> : <Selector {...selectorProps}  /> }
+        </div>
+    )
+};
+
+Setting.displayName = 'Setting';

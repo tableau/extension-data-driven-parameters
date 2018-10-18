@@ -1,12 +1,7 @@
 import * as React from 'react';
-import Setting from './Setting';
 
-import {
-    ActivitySpinnerWidget,
-    ButtonType,
-    ButtonWidget,
-    CheckBoxWithLabelWidget,
-} from '@tableau/widgets';
+import { Button, Checkbox } from '@tableau/tableau-ui';
+import { Setting } from './Setting';
 
 declare global {
     interface Window { tableau: any; }
@@ -20,20 +15,24 @@ interface State {
     field: string,
     field_config: boolean,
     field_enabled: boolean,
-    field_list: any,
+    field_list: string[],
     ignoreSelection: boolean,
     loading: boolean,
     param_config: boolean,
     param_enabled: boolean,
-    param_list: any,
+    param_list: string[],
     parameter: string,
     tpexists: boolean,
     txt: string,
     worksheet: string,
     ws_config: boolean,
     ws_enabled: boolean,
-    ws_list: any,
+    ws_list: string[],
 }
+
+const Loading: string = 'Loading...';
+const NoFieldsFound: string = 'No fields found that match parameter!';
+const NoWorksheetsFound: string = 'No worksheets found!';
 
 // Container for all configurations
 class Configure extends React.Component<any, State> {
@@ -57,6 +56,7 @@ class Configure extends React.Component<any, State> {
         ws_enabled: false,
         ws_list: [],
     };
+
     constructor(props: any) {
         super(props);
         this.bgChange = this.bgChange.bind(this);
@@ -91,30 +91,36 @@ class Configure extends React.Component<any, State> {
     };
 
     // Handles selection in parameter dropdown
-    public paramChange = (pname: string): void => {
+    public paramChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         this.setState({
-            parameter: pname,
+            parameter: e.target.value,
         });
     };
 
     // Handles selection in field dropdown
-    public fieldChange = (fname: string): void => {
+    public fieldChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         this.setState({
-            field: fname,
+            field: e.target.value,
         });
     };
 
     // Handles selection in worksheet dropdown
-    public wsChange = (wsname: string): void => {
+    public wsChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         this.setState({
-            worksheet: wsname,
+            worksheet: e.target.value,
         });
     };
 
     // Handles change in ignoreSelection checkbox
-    public checkChange = (state: boolean): void => {
+    public checkChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({
-            ignoreSelection: !state,
+            ignoreSelection: !e.target.checked,
+        });
+    };
+
+    public checkChangeTwo = (value: boolean): void => {
+        this.setState({
+            ignoreSelection: !value,
         });
     };
 
@@ -151,23 +157,20 @@ class Configure extends React.Component<any, State> {
     // Gets list of parameters in workbook and populates dropdown
     public populateParamList() {
         this.setState({
-            param_list: [{value: '1', displayValue: 'Loading...'}],
-            parameter: '1',
+            param_list: [ Loading ],
+            parameter: Loading,
         });
         dashboard.getParametersAsync().then((params: any) => {
-            const options = [];
+            const options: string[] = [];
             for (const p of params) {
                 if (p.allowableValues.type === 'all') {
-                    options.push({
-                        displayValue: p.name,
-                        value: p.name,
-                    });
+                    options.push(p.name);
                 }
             }
             this.setState({
                 param_enabled: true,
                 param_list: options,
-                parameter: options[0].value,
+                parameter: options[0],
             });
 
         });
@@ -222,27 +225,24 @@ class Configure extends React.Component<any, State> {
     // Populates list of worksheets
     public populateWS() {
         this.setState({
-            worksheet: '1',
-            ws_list: [{value: '1', displayValue: 'Loading...'}],
+            worksheet: Loading,
+            ws_list: [ Loading ],
         });
-        const options = [];
+        const options: string[] = [];
         let c = 0;
         for (const ws of dashboard.worksheets) {
-            options.push({
-                displayValue: ws.name,
-                value: ws.name,
-            });
+            options.push(ws.name);
             c++;
         }
         if (c === 0) {
             this.setState({
-                worksheet: '1',
+                worksheet: NoWorksheetsFound,
                 ws_enabled: false,
-                ws_list: [{value: '1', displayValue: 'No worksheets found!'}],
+                ws_list: [ NoWorksheetsFound ],
             });
         } else {
             this.setState({
-                worksheet: options[0].value,
+                worksheet: options[0],
                 ws_enabled: true,
                 ws_list: options,
             });
@@ -303,8 +303,8 @@ class Configure extends React.Component<any, State> {
     // Gets list of fields
     public populateFieldList() {
         this.setState({
-            field: '1',
-            field_list: [{value: '1', displayValue: 'Loading...'}],
+            field: Loading,
+            field_list: [ Loading ],
         });
         let dataType: string;
         window.tableau.extensions.dashboardContent.dashboard.getParametersAsync().then((params: any) => {
@@ -312,26 +312,23 @@ class Configure extends React.Component<any, State> {
             return dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync();
         })
         .then((dataTable: any) => {
-            const options = [];
+            const options: string[] = [];
             let c = 0;
             for (const f of dataTable.columns) {
                 if (f.dataType === dataType) {
-                    options.push({
-                        displayValue: f.fieldName,
-                        value: f.fieldName,
-                    });
+                    options.push(f.fieldName);
                     c++;
                 }
             }
             if (c === 0) {
                 this.setState({
-                    field: '1',
+                    field: NoFieldsFound,
                     field_enabled: false,
-                    field_list: [{value: '1', displayValue: 'No fields found that match parameter!'}],
+                    field_list: [ NoFieldsFound ],
                 });
             } else {
                 this.setState({
-                    field: options[0].value,
+                    field: options[0],
                     field_enabled: true,
                     field_list: options,
                 });
@@ -473,10 +470,10 @@ class Configure extends React.Component<any, State> {
     public render() {
       return (
         <React.Fragment>
-            <div id='loading' className={this.state.loading ? 'loading' : 'loaded'}>
+            {/* <div id='loading' className={this.state.loading ? 'loading' : 'loaded'}> */}
                 {/* Checking settings... */}
-                <ActivitySpinnerWidget testId={'loading'} shouldShowUnderlay={true} />
-            </div>
+                {/* <Spinner showUnderlay={true} /> */}
+            {/* </div> */}
             <div className='container'>
                 <div>
                     <div className='header'>
@@ -499,10 +496,10 @@ class Configure extends React.Component<any, State> {
                     </div>
                     {this.state.tpexists ? <React.Fragment>
                         <div className='title'>Configure Parameter</div>
-                        <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextconfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled} list={this.state.param_list} onChange={this.paramChange}/>
-                        <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextconfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
+                        <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextConfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled} list={this.state.param_list} onChange={this.paramChange}/>
+                        <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextConfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
                         <Setting selecting='field' onClick={this.setField} onClear={this.clearField} config={this.state.field_config} selected={this.state.field} enabled={this.state.field_enabled} list={this.state.field_list} onChange={this.fieldChange}/>
-                        <CheckBoxWithLabelWidget checked={!this.state.ignoreSelection} handleChange={this.checkChange} testId='ignore-select' label='Filter parameter list based on worksheet selections' containerStyle={{flexGrow: 1, marginTop:'12px', marginLeft: '5px'}} />
+                        <Checkbox checked={!this.state.ignoreSelection} onChange={this.checkChange} style={{ flexGrow: 1, marginTop:'12px', marginLeft: '10px' }}>Filter parameter list based on worksheet selections</Checkbox>
                         <div className='title' style={{marginTop: '30px'}}>
                             Formatting
                         </div>
@@ -524,9 +521,9 @@ class Configure extends React.Component<any, State> {
                 </div>
                 <div className='footer'>
                     <div className='btncluster'>
-                    <ButtonWidget buttonType={ButtonType.Outline} handleClick={this.clearSettings} testId='clear' style={{marginRight: 'auto'}}>Clear Settings</ButtonWidget>
-                    {/* <ButtonWidget buttonType={ButtonType.Outline} handleClick={this.cancel} testId='cancel'>Cancel</ButtonWidget> */}
-                    <ButtonWidget buttonType={ButtonType.Go} handleClick={this.submit} testId='ok' disabled={!this.state.configured || !this.state.ws_config} style={{marginLeft: '12px'}}>OK</ButtonWidget>
+                        <Button onClick={this.clearSettings} style={{ marginRight: 'auto' }}>Clear Settings</Button>
+                        {/* <Button onClick={this.cancel}>Cancel</Button> */}
+                        <Button kind='filledGreen' onClick={this.submit} disabled={!this.state.configured || !this.state.ws_config} style={{ marginLeft: '12px' }}>OK</Button>
                     </div>
                 </div>
             </div>
