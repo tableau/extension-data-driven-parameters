@@ -3,13 +3,11 @@ import * as React from 'react';
 import { Button, ButtonProps, DropdownSelect, DropdownSelectProps  } from '@tableau/tableau-ui';
 
 export interface SelectorProps {
-    config: boolean;
     enabled: boolean;
     list: string[];
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onClick: () => void;
     selected: string;
-    selecting: string;
 }
 
 // Shows if setting has not yet been configured
@@ -28,7 +26,7 @@ export const Selector: React.SFC<SelectorProps> = (props) => {
         kind: 'filledGreen',
         onClick: props.onClick,
         style: { marginLeft: '12px' },
-    }
+    };
 
     return (
         <div className='controls'>

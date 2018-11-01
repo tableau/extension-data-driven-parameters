@@ -1,13 +1,12 @@
 import * as React from 'react';
-
-import { Selected, SelectedProps } from './Selected';
-import { Selector, SelectorProps } from './Selector';
+import { Selected } from './Selected';
+import { Selector } from './Selector';
 
 declare global {
     interface Window { tableau: any; }
 }
 
-export interface SettingsProps {
+export interface SettingProps {
     config: boolean;
     enabled: boolean;
     list: string[];
@@ -19,31 +18,20 @@ export interface SettingsProps {
     selecting: string;
 }
 
-// An individual setting. Changes based upon setting be set or not
-export const Setting: React.SFC<SettingsProps> = (props) => {
-    const selectedProps: SelectedProps = {
-        nextConfig: props.nextConfig,
-        onClear: props.onClear,
-        selected: props.selected,
-        selecting: props.selecting,
-    }
-
-    const selectorProps: SelectorProps = {
-        config: props.config,
-        enabled: props.enabled,
-        list: props.list,
-        onChange: props.onChange,
-        onClick: props.onClick,
-        selected: props.selected,
-        selecting: props.selecting,
-    }
-
+export const Setting: React.SFC<SettingProps> = (props) => {
     return (
         <div className='select'>
             <p>Select a {props.selecting}</p>
-            {props.config ? <Selected {...selectedProps} /> : <Selector {...selectorProps}  /> }
+            {renderSelectElement(props)}
         </div>
-    )
+    );
 };
 
 Setting.displayName = 'Setting';
+
+function renderSelectElement(props: SettingProps): JSX.Element {
+    const { config, enabled, list, nextConfig, onChange, onClear, onClick, selected, selecting } = props;
+
+    return config ? <Selected nextConfig={nextConfig} onClear={onClear} selected={selected} selecting={selecting} /> :
+                    <Selector enabled={enabled} list={list} onChange={onChange} onClick={onClick} selected={selected} />;
+}

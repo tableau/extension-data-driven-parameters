@@ -78,50 +78,36 @@ class Configure extends React.Component<any, State> {
 
     // Handles change in background color input
     public bgChange = (color: any): void => {
-        this.setState({
-            bg: color.target.value,
-        });
+        this.setState({ bg: color.target.value });
     };
 
     // Handles change in text color input
     public txtChange = (color: any): void => {
-        this.setState({
-            txt: color.target.value,
-        });
+        this.setState({ txt: color.target.value });
     };
 
     // Handles selection in parameter dropdown
     public paramChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        this.setState({
-            parameter: e.target.value,
-        });
+        this.setState({ parameter: e.target.value });
     };
 
     // Handles selection in field dropdown
     public fieldChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        this.setState({
-            field: e.target.value,
-        });
+        this.setState({ field: e.target.value });
     };
 
     // Handles selection in worksheet dropdown
     public wsChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        this.setState({
-            worksheet: e.target.value,
-        });
+        this.setState({ worksheet: e.target.value });
     };
 
     // Handles change in ignoreSelection checkbox
     public checkChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        this.setState({
-            ignoreSelection: !e.target.checked,
-        });
+        this.setState({ ignoreSelection: !e.target.checked });
     };
 
     public checkChangeTwo = (value: boolean): void => {
-        this.setState({
-            ignoreSelection: !value,
-        });
+        this.setState({ ignoreSelection: !value });
     };
 
     // Tests if currently set Parameter exists and accepts all values

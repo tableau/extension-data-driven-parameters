@@ -213,3 +213,9 @@ body {
 select.parameter:hover {
     outline: none;
 }
+
+.dropdown-select {
+    flex: 1;
+    margin-left: 0;
+    width: '100%';
+}
