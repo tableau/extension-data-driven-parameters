@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, Checkbox } from '@tableau/tableau-ui';
+import { Button, Checkbox, Spinner } from '@tableau/tableau-ui';
 import { Setting } from './Setting';
 
 declare global {
@@ -456,10 +456,10 @@ class Configure extends React.Component<any, State> {
     public render() {
       return (
         <React.Fragment>
-            {/* <div id='loading' className={this.state.loading ? 'loading' : 'loaded'}> */}
+            <div id='loading' className={this.state.loading ? 'loading' : 'loaded'}>
                 {/* Checking settings... */}
-                {/* <Spinner showUnderlay={true} /> */}
-            {/* </div> */}
+                <Spinner showUnderlay={true} />
+            </div>
             <div className='container'>
                 <div>
                     <div className='header'>
@@ -508,7 +508,6 @@ class Configure extends React.Component<any, State> {
                 <div className='footer'>
                     <div className='btncluster'>
                         <Button onClick={this.clearSettings} style={{ marginRight: 'auto' }}>Clear Settings</Button>
-                        {/* <Button onClick={this.cancel}>Cancel</Button> */}
                         <Button kind='filledGreen' onClick={this.submit} disabled={!this.state.configured || !this.state.ws_config} style={{ marginLeft: '12px' }}>OK</Button>
                     </div>
                 </div>

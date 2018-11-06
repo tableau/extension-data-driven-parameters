@@ -16,9 +16,9 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@tableau/tableau-ui@1.0.2":
-  version "1.0.2"
-  resolved "https://artifactory.prod.tableautools.com/artifactory/api/npm/tab-npm/@tableau/tableau-ui/-/tableau-ui-1.0.2.tgz#aa05c4a653e171873785c73bbbe39efd4f39c06c"
+"@tableau/tableau-ui@2.0.0":
+  version "2.0.0"
+  resolved "https://artifactory.prod.tableautools.com/artifactory/api/npm/tab-npm/@tableau/tableau-ui/-/tableau-ui-2.0.0.tgz#c423c2b8eb3013260048e1d053e413ffeabc3e1a"
   dependencies:
     typestyle "^2.0.1"
 
