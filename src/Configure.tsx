@@ -1,12 +1,9 @@
 import * as React from 'react';
-import Setting from './Setting';
 
-import {
-    ActivitySpinnerWidget,
-    ButtonType,
-    ButtonWidget,
-    CheckBoxWithLabelWidget,
-} from '@tableau/widgets';
+import { Button, Checkbox, Radio } from '@tableau/tableau-ui';
+import { Setting } from './Setting';
+
+/* tslint:disable:no-console */
 
 declare global {
     interface Window { tableau: any; }
@@ -20,172 +17,155 @@ interface State {
     field: string,
     field_config: boolean,
     field_enabled: boolean,
-    field_list: any,
+    field_list: string[],
     ignoreSelection: boolean,
-    loading: boolean,
+    includeAllValue: boolean,
     param_config: boolean,
     param_enabled: boolean,
-    param_list: any,
+    param_list: string[],
     parameter: string,
-    tpexists: boolean,
+    sort: string,
     txt: string,
+    useFormattedValues: boolean,
     worksheet: string,
     ws_config: boolean,
     ws_enabled: boolean,
-    ws_list: any,
+    ws_list: string[],
 }
 
-// Container for all configurations
+const Loading: string = 'Loading...';
+const NoFieldsFound: string = 'No fields found that match parameter!';
+const NoWorksheetsFound: string = 'No worksheets found!';
+const NoParametersFound: string = 'No open input parameters found!';
+
 class Configure extends React.Component<any, State> {
     public readonly state: State = {
-        bg: '#000000',
+        bg: '#ffffff',
         configured: false,
         field: '',
         field_config: false,
         field_enabled: false,
         field_list: [],
         ignoreSelection: false,
-        loading: true,
+        includeAllValue: false,
         param_config: false,
         param_enabled: false,
         param_list: [],
         parameter: '',
-        tpexists: true,
+        sort: 'asc',
         txt: '#000000',
+        useFormattedValues: false,
         worksheet: '',
         ws_config: false,
         ws_enabled: false,
         ws_list: [],
     };
-    constructor(props: any) {
-        super(props);
-        this.bgChange = this.bgChange.bind(this);
-        this.txtChange = this.txtChange.bind(this);
-        this.checkChange = this.checkChange.bind(this);
-        this.paramChange = this.paramChange.bind(this);
-        this.fieldChange = this.fieldChange.bind(this);
-        this.wsChange = this.wsChange.bind(this);
-        this.setParam = this.setParam.bind(this);
-        this.setField = this.setField.bind(this);
-        this.setWS = this.setWS.bind(this);
-        this.clearParam = this.clearParam.bind(this);
-        this.clearField = this.clearField.bind(this);
-        this.clearWS = this.clearWS.bind(this);
-        this.submit = this.submit.bind(this);
-        this.cancel = this.cancel.bind(this);
-        this.clearSettings = this.clearSettings.bind(this);
-    }
 
     // Handles change in background color input
     public bgChange = (color: any): void => {
-        this.setState({
-            bg: color.target.value,
-        });
+        this.setState({ bg: color.target.value });
     };
 
     // Handles change in text color input
     public txtChange = (color: any): void => {
-        this.setState({
-            txt: color.target.value,
-        });
+        this.setState({ txt: color.target.value });
     };
 
     // Handles selection in parameter dropdown
-    public paramChange = (pname: string): void => {
-        this.setState({
-            parameter: pname,
-        });
+    public paramChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({ parameter: e.target.value });
     };
 
     // Handles selection in field dropdown
-    public fieldChange = (fname: string): void => {
-        this.setState({
-            field: fname,
-        });
+    public fieldChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({ field: e.target.value });
     };
 
     // Handles selection in worksheet dropdown
-    public wsChange = (wsname: string): void => {
-        this.setState({
-            worksheet: wsname,
-        });
+    public wsChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({ worksheet: e.target.value });
     };
 
     // Handles change in ignoreSelection checkbox
-    public checkChange = (state: boolean): void => {
-        this.setState({
-            ignoreSelection: !state,
-        });
+    public ignoreSelectionChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ ignoreSelection: !e.target.checked });
     };
 
-    // Tests if currently set Parameter exists and accepts all values
+    // Handles change in useFormattedValues checkbox
+    public aliasChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ useFormattedValues: e.target.checked });
+    };
+
+    // Handles change in useFormattedValues checkbox
+    public allChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ includeAllValue: e.target.checked });
+    };
+
+    // Handles change in sort checkbox
+    public sortChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ sort: e.target.value });
+    };
+
+    // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
     public testParamSettings() {
+        const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
-            const pset = window.tableau.extensions.settings.getAll().selParam;
-            this.setState({loading: true});
-            dashboard.getParametersAsync().then((params: any) => {
-                const testParam = params.find((param: any) => param.name === pset);
-                if (testParam) {
-                    if (testParam.allowableValues.type === 'all') {
-                        this.setState({
-                            param_config: true,
-                            param_enabled: false,
-                            parameter: testParam.name,
-                        });
-                        this.testWSSettings();
-                    } else {
-                        this.populateParamList();
-                        this.setState({loading: false, configured: false});
-                    }
+            dashboard.findParameterAsync(settings.selParam).then((param: any) => {
+                if (param && param.allowableValues.type === 'all') {
+                    this.setState({
+                        param_config: true,
+                        parameter: param.name,
+                    });
+                    this.testWSSettings();
                 } else {
                     this.populateParamList();
-                    this.setState({loading: false, configured: false});
+                    this.setState({ configured: false });
                 }
-            });
+            })
         } else {
             this.populateParamList();
-            this.setState({loading: false});
         }
     }
 
     // Gets list of parameters in workbook and populates dropdown
     public populateParamList() {
         this.setState({
-            param_list: [{value: '1', displayValue: 'Loading...'}],
-            parameter: '1',
+            param_list: [Loading],
+            parameter: Loading,
         });
         dashboard.getParametersAsync().then((params: any) => {
-            const options = [];
+            const dropdownList: string[] = [];
             for (const p of params) {
                 if (p.allowableValues.type === 'all') {
-                    options.push({
-                        displayValue: p.name,
-                        value: p.name,
-                    });
+                    dropdownList.push(p.name);
                 }
             }
-            this.setState({
-                param_enabled: true,
-                param_list: options,
-                parameter: options[0].value,
-            });
-
+            if (dropdownList.length > 0) {
+                this.setState({
+                    param_enabled: true,
+                    param_list: dropdownList,
+                    parameter: dropdownList[0],
+                });
+            } else {
+                this.setState({
+                    param_enabled: false,
+                    param_list: [NoParametersFound],
+                    parameter: NoParametersFound,
+                });
+            }
         });
     }
 
     // Sets which tableau parameter to update
-    public setParam() {
+    public setParam = (): void => {
         if (this.state.parameter !== '') {
-            this.setState({
-                param_config: true,
-                param_enabled: false,
-            });
-            this.testWSSettings();
+            this.setState({ param_config: true });
+            this.populateWS();
         }
     }
 
-    // Clear which tableau parameter to update
-    public clearParam() {
+    // Clears setting for which tableau parameter to update
+    public clearParam = (): void => {
         this.setState({
             param_config: false,
             param_enabled: true,
@@ -194,74 +174,61 @@ class Configure extends React.Component<any, State> {
         this.populateParamList();
     }
 
-    // Tests if currently set Worksheet to pull filters from exists
+    // Tests if extension is configured and if so, if the worksheet in settings exists
     public testWSSettings() {
+        const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
-            this.setState({loading: true});
-            const wsset = window.tableau.extensions.settings.get('selWorksheet');
-            if (wsset && dashboard.worksheets.find((ws: any) => ws.name === wsset)) {
+            if (dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet)) {
                 this.setState({
-                    loading: false,
-                    worksheet: wsset,
+                    worksheet: settings.selWorksheet,
                     ws_config: true,
                     ws_enabled: false,
                 });
                 this.testFieldSettings();
             } else {
-                this.setState({
-                    loading: false, 
-                });
                 this.populateWS();
+                this.setState({ configured: false });
             }
         } else {
-            this.setState({loading: false});
             this.populateWS();
         }
     }
 
-    // Populates list of worksheets
+    // Gets list of worksheets in dashboard and populates dropdown
     public populateWS() {
         this.setState({
-            worksheet: '1',
-            ws_list: [{value: '1', displayValue: 'Loading...'}],
+            worksheet: Loading,
+            ws_list: [Loading],
         });
-        const options = [];
-        let c = 0;
+        const dropdownList: string[] = [];
         for (const ws of dashboard.worksheets) {
-            options.push({
-                displayValue: ws.name,
-                value: ws.name,
-            });
-            c++;
+            dropdownList.push(ws.name);
         }
-        if (c === 0) {
+        if (dropdownList.length > 0) {
             this.setState({
-                worksheet: '1',
-                ws_enabled: false,
-                ws_list: [{value: '1', displayValue: 'No worksheets found!'}],
+                worksheet: dropdownList[0],
+                ws_enabled: true,
+                ws_list: dropdownList,
             });
         } else {
             this.setState({
-                worksheet: options[0].value,
-                ws_enabled: true,
-                ws_list: options,
+                worksheet: NoWorksheetsFound,
+                ws_enabled: false,
+                ws_list: [NoWorksheetsFound],
             });
         }
     }
 
     // Sets which worksheet to use for filters
-    public setWS() {
+    public setWS = (): void => {
         if (this.state.worksheet !== '') {
-            this.setState({
-                ws_config: true,
-                ws_enabled: false,
-            });
-            this.testFieldSettings();
+            this.setState({ ws_config: true });
+            this.populateFieldList();
         }
     }
 
-    // Clears which worksheet to use for filters
-    public clearWS() {
+    // Clears setting for which worksheet to use for filters
+    public clearWS = (): void => {
         this.setState({
             field_enabled: false,
             ws_config: false,
@@ -270,88 +237,74 @@ class Configure extends React.Component<any, State> {
         this.populateWS();
     }
 
-    // Tests if currently set Field to pull domain from exists
+    // Tests if extension is configued and if so, if the field in settings exists on the selected worksheet
     public testFieldSettings() {
+        const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
-            this.setState({loading: true});
-            const fset = window.tableau.extensions.settings.get('selField');
-            if (fset) {
-                dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync().then((dataTable: any) => {
-                    if (dataTable.columns.find((column: any) => column.fieldName === fset)) {
-                        this.setState({
-                            configured: true,
-                            field: fset,
-                            field_config: true,
-                            field_enabled: false,
-                            loading: false,
-                        });
-                    } else {
-                        this.populateFieldList();
-                        this.setState({loading: false, configured: false});
-                    }
-                });
-            } else {
-                this.populateFieldList();
-                this.setState({loading: false, configured: false});
-            }
+            dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync().then((dataTable: any) => {
+                if (dataTable.columns.find((column: any) => column.fieldName === settings.selField)) {
+                    this.setState({
+                        configured: true,
+                        field: settings.selField,
+                        field_config: true,
+                        field_enabled: false,
+                    });
+                } else {
+                    this.populateFieldList();
+                    this.setState({ configured: false });
+                }
+            });
         } else {
             this.populateFieldList();
-            this.setState({loading: false});
         }
     }
 
-    // Gets list of fields
+    // Gets list of fields in previously selected worksheet's data and populates dropdown
     public populateFieldList() {
         this.setState({
-            field: '1',
-            field_list: [{value: '1', displayValue: 'Loading...'}],
+            field: Loading,
+            field_list: [Loading],
         });
         let dataType: string;
-        window.tableau.extensions.dashboardContent.dashboard.getParametersAsync().then((params: any) => {
-            dataType = params.find((param: any) => param.name === this.state.parameter).dataType;
+        dashboard.findParameterAsync(this.state.parameter).then((param: any) => {
+            dataType = param.dataType;
             return dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync();
         })
-        .then((dataTable: any) => {
-            const options = [];
-            let c = 0;
-            for (const f of dataTable.columns) {
-                if (f.dataType === dataType) {
-                    options.push({
-                        displayValue: f.fieldName,
-                        value: f.fieldName,
-                    });
-                    c++;
+            .then((dataTable: any) => {
+                const dropdownList: string[] = [];
+                for (const f of dataTable.columns) {
+                    if (f.dataType === dataType) {
+                        dropdownList.push(f.fieldName);
+                    }
                 }
-            }
-            if (c === 0) {
-                this.setState({
-                    field: '1',
-                    field_enabled: false,
-                    field_list: [{value: '1', displayValue: 'No fields found that match parameter!'}],
-                });
-            } else {
-                this.setState({
-                    field: options[0].value,
-                    field_enabled: true,
-                    field_list: options,
-                });
-            }
-        });
+                if (dropdownList.length > 0) {
+                    this.setState({
+                        field: dropdownList[0],
+                        field_enabled: true,
+                        field_list: dropdownList,
+                    });
+                } else {
+                    this.setState({
+                        field: NoFieldsFound,
+                        field_enabled: false,
+                        field_list: [NoFieldsFound],
+                    });
+                }
+            });
     }
 
     // Sets the field to pull values from for Data-Driven Parameter
-    public setField() {
+    public setField = (): void => {
         if (this.state.field !== '') {
             this.setState({
                 configured: true,
                 field_config: true,
-                field_enabled: false,
             });
         }
     }
 
     // Clears the field to pull values from for Data-Driven Parameter
-    public clearField() {
+    public clearField = (): void => {
         this.setState({
             configured: false,
             field_config: false,
@@ -360,33 +313,25 @@ class Configure extends React.Component<any, State> {
         this.populateFieldList();
     }
 
-    // Saves settings and closes configure dialog with data source payload
-    public submit() {
+    // Saves settings and closes configure dialog
+    public submit = (): void => {
         window.tableau.extensions.settings.set('selParam', this.state.parameter);
         window.tableau.extensions.settings.set('selWorksheet', this.state.worksheet);
         window.tableau.extensions.settings.set('selField', this.state.field);
         window.tableau.extensions.settings.set('bg', this.state.bg);
         window.tableau.extensions.settings.set('txt', this.state.txt);
+        window.tableau.extensions.settings.set('sort', this.state.sort);
         window.tableau.extensions.settings.set('ignoreSelection', this.state.ignoreSelection);
+        window.tableau.extensions.settings.set('useFormattedValues', this.state.useFormattedValues);
+        window.tableau.extensions.settings.set('includeAllValue', this.state.includeAllValue);
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
         });
     }
 
-    // Closes configure dialog with no* payload.
-    public cancel() {
-        window.tableau.extensions.ui.closeDialog(this.state.configured ? this.state.worksheet : '');
-    }
-
     // Clears settings and states
-    public clearSettings() {
-        window.tableau.extensions.settings.erase('selParam');
-        window.tableau.extensions.settings.erase('selWorksheet');
-        window.tableau.extensions.settings.erase('selField');
-        window.tableau.extensions.settings.erase('bg');
-        window.tableau.extensions.settings.erase('txt');
-        window.tableau.extensions.settings.set('configured', 'false');
+    public clearSettings = (): void => {
         this.setState({
             configured: false,
             field: '',
@@ -394,7 +339,6 @@ class Configure extends React.Component<any, State> {
             field_enabled: false,
             field_list: [],
             param_config: false,
-            param_enabled: false,
             param_list: [],
             parameter: '',
             worksheet: '',
@@ -407,131 +351,101 @@ class Configure extends React.Component<any, State> {
 
     // Once we have mounted, we call to initialize
     public componentWillMount() {
-        const uiPromise = window.tableau.extensions.initializeDialogAsync();
-        if (uiPromise) {
-            uiPromise.then(() => {
-                dashboard = window.tableau.extensions.dashboardContent.dashboard;
-                const paramPromise = dashboard.getParametersAsync();
-                if (paramPromise) {
-                    paramPromise.then((params: any) => {
-                        // If there are any parameters:
-                        if (params.length > 0) {
-                            let c = 0;
-                            for (const p of params) {
-                                if (p.allowableValues.type === 'all') {
-                                    c++;
-                                }
-                            }
-                            // If there are open input parameters:
-                            if (c > 0) {
-                                const settings  = window.tableau.extensions.settings.getAll();
-                                if (settings.configured === 'true') {
-                                    if (settings.bg) {
-                                        this.setState({
-                                            bg: settings.bg,
-                                        });
-                                    } 
-                                    if (settings.txt) {
-                                        this.setState({
-                                            txt: settings.txt,
-                                        });
-                                    }
-                                    if (settings.ignoreSelection) {
-                                        this.setState({
-                                            ignoreSelection: settings.ignoreSelection === 'true',
-                                        });
-                                    }
-                                    this.setState({
-                                        configured: true,
-                                    });
-                                    this.testParamSettings();
-                                } else {
-                                    this.setState({
-                                        bg: '#ffffff',
-                                    });
-                                    this.populateParamList();
-                                    this.setState({loading: false});
-                                }
-                            } else {
-                                this.setState({
-                                    loading: false,
-                                    tpexists: false,
-                                });
-                            }
-                        } else {
-                            this.setState({
-                                loading: false,
-                                tpexists: false,
-                            });
-                        }
-                    });
-                }
-            });
-        }
+        window.tableau.extensions.initializeDialogAsync().then(() => {
+            dashboard = window.tableau.extensions.dashboardContent.dashboard;
+            const settings = window.tableau.extensions.settings.getAll();
+            if (settings.configured === 'true') {
+                this.setState({
+                    bg: settings.bg || '#ffffff',
+                    configured: true,
+                    ignoreSelection: settings.ignoreSelection === 'true' || false,
+                    includeAllValue: settings.includeAllValue === 'true' || false,
+                    sort: settings.sort || 'asc',
+                    txt: settings.txt || '#000000',
+                    useFormattedValues: settings.useFormattedValues === 'true' || false,
+                });
+                this.testParamSettings();
+            } else {
+                this.populateParamList();
+            }
+        });
     }
 
     public render() {
-      return (
-        <React.Fragment>
-            <div id='loading' className={this.state.loading ? 'loading' : 'loaded'}>
-                {/* Checking settings... */}
-                <ActivitySpinnerWidget testId={'loading'} shouldShowUnderlay={true} />
-            </div>
-            <div className='container'>
-                <div>
-                    <div className='header'>
-                        Data-Driven Parameter Configuration
-                        <div className='tooltip'>
-                            <svg xmlns='http://www.w3.org/2000/svg' id='Dialogs_x5F_Info' width='15' height='15' viewBox='0 0 15 15'>
-                                <rect id='Line' x='7' y='6' width='1' height='5' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
-                                <rect id='Dot_2_' x='7' y='4' width='1' height='1' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
-                                <path id='Circle' d='M7.5,1C3.9,1,1,3.9,1,7.5S3.9,14,7.5,14 S14,11.1,14,7.5S11.1,1,7.5,1z M7.5,13C4.5,13,2,10.5,2,7.5C2,4.5,4.5,2,7.5,2S13,4.5,13,7.5C13,10.5,10.5,13,7.5,13z' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
-                            </svg>
-                            <span className='tooltiptext'>
-                                <b>How to Use</b>
-                                <ol>
-                                    <li>Select a Tableau parameter to manipulate.</li>
-                                    <li>Select a worksheet with the data you want.</li>
-                                    <li>Select a field to use to populate the parameter.</li>
-                                </ol>
-                            </span>
+        return (
+            <React.Fragment>
+                <div className='container'>
+                    <div>
+                        <div className='header'>
+                            Data-Driven Parameter Configuration
+                            <div className='tooltip'>
+                                <svg xmlns='http://www.w3.org/2000/svg' id='Dialogs_x5F_Info' width='15' height='15' viewBox='0 0 15 15'>
+                                    <rect id='Line' x='7' y='6' width='1' height='5' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
+                                    <rect id='Dot_2_' x='7' y='4' width='1' height='1' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
+                                    <path id='Circle' d='M7.5,1C3.9,1,1,3.9,1,7.5S3.9,14,7.5,14 S14,11.1,14,7.5S11.1,1,7.5,1z M7.5,13C4.5,13,2,10.5,2,7.5C2,4.5,4.5,2,7.5,2S13,4.5,13,7.5C13,10.5,10.5,13,7.5,13z' fillRule='evenodd' clipRule='evenodd' fill='#666766' />
+                                </svg>
+                                <span className='tooltiptext'>
+                                    <b>How to Use</b>
+                                    <ol>
+                                        <li>Select a Tableau parameter to manipulate. This parameter must already exists and must allow "all" values.</li>
+                                        <li>Select a worksheet with the data you want to use in your parameter.</li>
+                                        <li>Select a field to use to populate the parameter. Field data type must match the data type of parameter.</li>
+                                    </ol>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    {this.state.tpexists ? <React.Fragment>
-                        <div className='title'>Configure Parameter</div>
-                        <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextconfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled} list={this.state.param_list} onChange={this.paramChange}/>
-                        <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextconfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
-                        <Setting selecting='field' onClick={this.setField} onClear={this.clearField} config={this.state.field_config} selected={this.state.field} enabled={this.state.field_enabled} list={this.state.field_list} onChange={this.fieldChange}/>
-                        <CheckBoxWithLabelWidget checked={!this.state.ignoreSelection} handleChange={this.checkChange} testId='ignore-select' label='Filter parameter list based on worksheet selections' containerStyle={{flexGrow: 1, marginTop:'12px', marginLeft: '5px'}} />
-                        <div className='title' style={{marginTop: '30px'}}>
-                            Formatting
+
+                        <div className='title' style={{marginTop: '18px'}}>Configure Parameter</div>
+                        <div className='content'>                      
+                            <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextConfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled && !this.state.param_config} list={this.state.param_list} onChange={this.paramChange} />
+                            <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextConfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
+                            <Setting selecting='field' onClick={this.setField} onClear={this.clearField} config={this.state.field_config} selected={this.state.field} enabled={this.state.field_enabled} list={this.state.field_list} onChange={this.fieldChange} />
                         </div>
-                        <div className='select'>
+
+                        <div className='title'>Options</div>
+                        <div className='content'>
+                            <div className='option'>
+                                <Checkbox checked={!this.state.ignoreSelection} onChange={this.ignoreSelectionChange} style={{ flexGrow: 1}}>Filter parameter list based on worksheet selections</Checkbox>
+                            </div>
+                            <div className='option'>
+                                <Checkbox checked={this.state.useFormattedValues} onChange={this.aliasChange} style={{ flexGrow: 1}}>Use aliased values</Checkbox>
+                            </div>
+                            <div className='option'>
+                                <Checkbox checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
+                            </div>
+                            <div className='option'>
+                                Sorting: 
+                                <Radio checked={this.state.sort === 'asc'} onChange={this.sortChange} name='sorting' value='asc' style={{ margin: '0px 12px'}}>Ascending (A-Z)</Radio>
+                                <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
+                            </div>
+                        </div>
+
+                        <div className='title'>Formatting</div>
+                        <div className='content'>
                             <div className='format'>
-                                <div className='ftext'>Background Color</div>
+                                <div className='formattext'>Background Color</div>
                                 <div>
-                                    <input type='color' defaultValue={this.state.bg} onChange={this.bgChange} style={{backgroundColor: this.state.bg}}/>
+                                    <input type='color' value={this.state.bg} onChange={this.bgChange} style={{ backgroundColor: this.state.bg }} />
                                 </div>
                             </div>
                             <div className='format'>
-                                <div className='ftext'>Text Color</div>
+                                <div className='formattext'>Text Color</div>
                                 <div>
-                                    <input type='color' defaultValue={this.state.txt} onChange={this.txtChange} style={{backgroundColor: this.state.txt}}/>
+                                    <input type='color' value={this.state.txt} onChange={this.txtChange} style={{ backgroundColor: this.state.txt }} />
                                 </div>
                             </div>
                         </div>
-                    </React.Fragment> : <div className='error'>Please create a parameter that allows all values for use with this extension.</div>}
-                </div>
-                <div className='footer'>
-                    <div className='btncluster'>
-                    <ButtonWidget buttonType={ButtonType.Outline} handleClick={this.clearSettings} testId='clear' style={{marginRight: 'auto'}}>Clear Settings</ButtonWidget>
-                    {/* <ButtonWidget buttonType={ButtonType.Outline} handleClick={this.cancel} testId='cancel'>Cancel</ButtonWidget> */}
-                    <ButtonWidget buttonType={ButtonType.Go} handleClick={this.submit} testId='ok' disabled={!this.state.configured || !this.state.ws_config} style={{marginLeft: '12px'}}>OK</ButtonWidget>
+
+                    </div>
+                    <div className='footer'>
+                        <div className='btncluster'>
+                            <Button onClick={this.clearSettings} style={{ marginRight: 'auto' }}>Clear Settings</Button>
+                            <Button kind='filledGreen' onClick={this.submit} disabled={!this.state.configured || !this.state.ws_config} style={{ marginLeft: '12px' }}>OK</Button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </React.Fragment>
-      );
+            </React.Fragment>
+        );
     }
 }
 

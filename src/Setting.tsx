@@ -1,21 +1,37 @@
 import * as React from 'react';
-import Selected from './Selected';
-import Selector from './Selector';
+import { Selected } from './Selected';
+import { Selector } from './Selector';
 
 declare global {
     interface Window { tableau: any; }
 }
 
-// An individual setting. Chnges based on if setting is set or not
-class Setting extends React.Component<any, any> {
-    public render() {
-        return (
-            <div className='select'>
-                <p>Select a {this.props.selecting}</p>
-                { this.props.config ? <Selected selecting={this.props.selecting} selected={this.props.selected} nextconfig={this.props.nextconfig} onClear={this.props.onClear} /> : <Selector selecting={this.props.selecting} selected={this.props.selected} onClick={this.props.onClick} config={this.props.config} enabled={this.props.enabled} list={this.props.list} onChange={this.props.onChange} /> }
-            </div>
-        )
-    }
+export interface SettingProps {
+    config: boolean;
+    enabled: boolean;
+    list: string[];
+    nextConfig?: boolean;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onClear: () => void;
+    onClick: () => void;
+    selected: string;
+    selecting: string;
 }
 
-export default Setting;
+export const Setting: React.SFC<SettingProps> = (props) => {
+    return (
+        <React.Fragment>
+            <span>Select a {props.selecting}</span>
+            {renderSelectElement(props)}
+        </React.Fragment>
+    );
+};
+
+Setting.displayName = 'Setting';
+
+function renderSelectElement(props: SettingProps): JSX.Element {
+    const { config, enabled, list, nextConfig, onChange, onClear, onClick, selected, selecting } = props;
+
+    return config ? <Selected nextConfig={nextConfig} onClear={onClear} selected={selected} selecting={selecting} /> :
+                    <Selector enabled={enabled} list={list} onChange={onChange} onClick={onClick} selected={selected} />;
+}

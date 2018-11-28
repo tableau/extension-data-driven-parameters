@@ -1,22 +1,41 @@
 import * as React from 'react';
 
-import {
-    ButtonType,
-    ButtonWidget,
-    DropdownType,
-    DropdownWidget,
-} from '@tableau/widgets';
+import { Button, ButtonProps, DropdownSelect, DropdownSelectProps  } from '@tableau/tableau-ui';
 
-// Shows if setting has not yet been configured
-class Selector extends React.Component<any, any> {
-    public render() {
-        return (
-            <div className='controls'>
-            <DropdownWidget testId='select' dropdownType={DropdownType.Line} menuItemInfos={this.props.list} onSelect={this.props.onChange} selectedValue={this.props.selected} disabled={!this.props.enabled} containerStyle={{marginLeft: 0, width: '100%', flex: 1}}/>
-            <ButtonWidget buttonType={ButtonType.Go} handleClick={this.props.onClick} testId={this.props.selecting + 'set'} disabled={!this.props.enabled || this.props.selected === ''} style={{marginLeft: '12px'}}>Set</ButtonWidget>
-            </div>
-        )
-    }
+export interface SelectorProps {
+    enabled: boolean;
+    list: string[];
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onClick: () => void;
+    selected: string;
 }
 
-export default Selector;
+// Shows if setting has not yet been configured
+export const Selector: React.SFC<SelectorProps> = (props) => {
+    const dropdownSelectProps: DropdownSelectProps = {
+        className: 'dropdown-select',
+        disabled: !props.enabled,
+        kind: 'line',
+        onChange: props.onChange,
+        onSelect: props.onChange,
+        value: props.selected,
+    };
+
+    const buttonProps: ButtonProps = {
+        disabled: !props.enabled || props.selected === '',
+        kind: 'filledGreen',
+        onClick: props.onClick,
+        style: { marginLeft: '12px' },
+    };
+
+    return (
+        <div className='selector'>
+            <DropdownSelect {...dropdownSelectProps}>
+                {props.list.map(option => <option key={option}>{option}</option>)}
+            </DropdownSelect>
+            <Button {...buttonProps}>Set</Button>
+        </div>
+    );
+};
+
+Selector.displayName = 'Selector';

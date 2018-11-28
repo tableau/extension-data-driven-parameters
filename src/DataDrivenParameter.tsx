@@ -1,6 +1,9 @@
 import * as React from 'react';
 import './style.css';
 
+/* tslint:disable:no-console */
+import { DropdownSelect } from '@tableau/tableau-ui';
+
 declare global {
     interface Window { tableau: any; }
 }
@@ -16,64 +19,66 @@ interface State {
     list: any,
 }
 
+const NeedsConfiguring: string = 'Parameter needs configuration';
+
+function fakeWhiteOverlay(hex: string) {
+    const rgb = hexToRgb(hex);
+    if (rgb) {
+        return `rgb(${Math.min(Math.floor(rgb.r / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.g / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.b / 2) + 127, 255)})`;
+    } else {
+        return '#ffffff';
+    }
+}
+
+function hexToRgb(hex: string) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        b: parseInt(result[3], 16),
+        g: parseInt(result[2], 16),
+        r: parseInt(result[1], 16),
+    } : null;
+}
+
 class DataDrivenParameter extends React.Component<any, State> {
     public readonly state: State = {
         bg: '#ffffff',
         configured: false,
-        currentVal: '1',
+        currentVal: NeedsConfiguring,
         disabled: true,
-        list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+        list: [NeedsConfiguring],
     };
 
-    constructor(props: any) {
-        super(props);
-        this.populateParam = this.populateParam.bind(this);
-        this.getParamData = this.getParamData.bind(this);
-        this.updateParam = this.updateParam.bind(this);
-        this.findParameter = this.findParameter.bind(this);
-        this.configure = this.configure.bind(this);
-    }
-
     // Pops open the configure page
-    public configure() {
+    public configure = (): void => {
         const popupUrl = (window.location.origin.includes('localhost')) ? `${window.location.origin}/#/config` : `${window.location.origin}/extension-data-driven-parameters/#/config`;
         const payload = '';
-        // let h = Math.floor(500 / window.devicePixelRatio);
-        // let w = Math.floor(450 / window.devicePixelRatio);
-        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 420, width: 420 }).then((closePayload: string) => {
+        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 600, width: 450 }).then((closePayload: string) => {
+            const settings = window.tableau.extensions.settings.getAll();
             if (closePayload !== '') {
-                const settings  = window.tableau.extensions.settings.getAll();
                 document.body.style.backgroundColor = settings.bg;
                 document.body.style.color = settings.txt;
-                const rgb = this.hexToRgb(settings.bg);
-                if (rgb) {
-                    this.setState({
-                        bg:  `rgb(${Math.min(Math.floor(rgb.r / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.g / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.b / 2) + 127, 255)})`,
-                    });
-                }
+                this.setState({ bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff') });
                 this.findParameter();
             } else {
                 this.setState({
-                    currentVal: '1',
+                    currentVal: NeedsConfiguring,
                     disabled: true,
-                    list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                    list: [NeedsConfiguring],
                 });
             }
         }).catch((error: any) => {
             if (window.tableau.extensions.settings.get('configured') !== 'true') {
                 this.setState({
-                    currentVal: '1',
+                    currentVal: NeedsConfiguring,
                     disabled: true,
-                    list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                    list: [NeedsConfiguring],
                 });
             }
             switch (error.errorCode) {
                 case window.tableau.ErrorCodes.DialogClosedByUser:
-                    // tslint:disable-next-line:no-console
                     console.log('Dialog was closed by user.');
                     break;
                 default:
-                    // tslint:disable-next-line:no-console
                     console.error(error.message);
             }
         });
@@ -81,85 +86,104 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Locates the parameter to update
     public findParameter() {
-        window.tableau.extensions.dashboardContent.dashboard.getParametersAsync().then((params: any) => {
-            parameter = params.find((param: any) => param.name === window.tableau.extensions.settings.get('selParam'));
+        const settings = window.tableau.extensions.settings.getAll();
+        window.tableau.extensions.dashboardContent.dashboard.findParameterAsync(settings.selParam).then((param: any) => {
+            parameter = param;
             if (!parameter || parameter.allowableValues.type !== 'all') {
                 this.setState({
-                    currentVal: '1',
+                    currentVal: NeedsConfiguring,
                     disabled: true,
-                    list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                    list: [NeedsConfiguring],
                 });
             } else {
                 this.getParamData();
-                this.wsEvent();
+                this.setupWsEvent();
             }
         });
     }
 
     // Gets the values from the selected field and populates the Data-Driven Parameter
-    public getParamData() {
-        const settings  = window.tableau.extensions.settings.getAll();
-        const worksheet = dashboard.worksheets.find((ws: any) => ws.name === window.tableau.extensions.settings.get('selWorksheet'));
-            if (!worksheet) {
-                this.setState({
-                    currentVal: '1',
-                    disabled: true,
-                    list: [{value: '1', displayValue: 'Parameter needs configuration'}],
-                });
-            } else {
-                worksheet.getSummaryDataAsync({ignoreSelection: settings.ignoreSelection === 'true'}).then((dataTable: any) => {
-                    this.populateParam(dataTable);
-                });
-            }
+    public getParamData = (): void => {
+        const settings = window.tableau.extensions.settings.getAll();
+        const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
+        if (!worksheet) {
+            this.setState({
+                currentVal: NeedsConfiguring,
+                disabled: true,
+                list: [NeedsConfiguring],
+            });
+        } else {
+            worksheet.getSummaryDataAsync({ ignoreSelection: settings.ignoreSelection === 'true' }).then((dataTable: any) => {
+                this.populateParam(dataTable);
+            });
+        }
     }
 
     // Pulls domain of selected field
     public populateParam(dataTable: any) {
-        const dataField = window.tableau.extensions.settings.get('selField');
-        const field = dataTable.columns.find((column: any) => column.fieldName === dataField);
+        const settings = window.tableau.extensions.settings.getAll();
+        const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
         if (!field) {
             this.setState({
-                currentVal: '1',
+                currentVal: NeedsConfiguring,
                 disabled: true,
-                list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                list: [NeedsConfiguring],
             });
         } else {
-            const fieldIndex = field.index;
             let list = [];
-            const options = [];
+            // Populate list with values from data source
             for (const row of dataTable.data) {
-                list.push(row[fieldIndex].value);
+                list.push((settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value));
             }
+
+            // Remove duplicates
             list = list.filter((item, index, inputArray) => {
                 return inputArray.indexOf(item) === index;
             });
-            list.sort();
-            for (const l of list) {
-                options.push({value: l, displayValue: l});
-            }
-            let value;
-            if (options.find(o => o.value === parameter.currentValue.value)) {
-                value = parameter.currentValue.value;
+
+            // Sort according to settings
+            if (settings.sort && settings.sort === 'desc') {
+                list.sort();
+                list.reverse();
             } else {
-                value = options[0].value;
+                list.sort();
             }
+
+            // Add '(All)' according to settings
+            if (settings.includeAllValue === 'true') {
+                list.unshift('(All)');
+            }
+
+            let currentVal;
+            // Test if current Tableau parameter value is in list, if so change extension value to it
+            if (list.find(item => item === parameter.currentValue.value)) {
+                currentVal = parameter.currentValue.value;
+            } else {
+                if (settings.includeAllValue === 'true') {
+                    currentVal = list[1];
+                } else {
+                    currentVal = list[0];
+                }
+            }
+
             this.setState({
-                currentVal: value,
+                currentVal,
                 disabled: false,
-                list: options,
+                list,
             });
-            parameter.changeValueAsync(value);
+            parameter.changeValueAsync(currentVal);
         }
     }
 
     // Adds event listener to worksheet
-    public wsEvent() {
-        const worksheet = dashboard.worksheets.find((ws: any) => ws.name === window.tableau.extensions.settings.get('selWorksheet'));
+    public setupWsEvent() {
+        const settings = window.tableau.extensions.settings.getAll();
+        const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
         if (!worksheet) {
             this.setState({
-                currentVal: '1',
+                currentVal: NeedsConfiguring,
                 disabled: true,
-                list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                list: [NeedsConfiguring],
             });
         } else {
             worksheet.addEventListener(window.tableau.TableauEventType.FilterChanged, this.getParamData);
@@ -168,67 +192,47 @@ class DataDrivenParameter extends React.Component<any, State> {
     }
 
     // Updates the parameter based on selection in Data-Driven Parameter
-    public updateParam(e: any) {
+    public updateParam = (e: any) => {
         const newValue = e.target.value;
         if (!parameter) {
             this.setState({
-                currentVal: '1',
+                currentVal: NeedsConfiguring,
                 disabled: true,
-                list: [{value: '1', displayValue: 'Parameter needs configuration'}],
+                list: [NeedsConfiguring],
             });
         } else {
             parameter.changeValueAsync(newValue);
-            this.setState({currentVal: newValue});
+            this.setState({ currentVal: newValue });
         }
         // Include to refresh domain on every selection:
         this.getParamData();
     }
 
-    public hexToRgb(hex: string) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            b: parseInt(result[3], 16),
-            g: parseInt(result[2], 16),
-            r: parseInt(result[1], 16),
-        } : null;
-    }
-
     // Once we have mounted, we call to initialize
     public componentWillMount() {
-        const initialziePromise = window.tableau.extensions.initializeAsync({ configure: this.configure });
-        if (initialziePromise) {
-            initialziePromise.then(() => {
-                dashboard = window.tableau.extensions.dashboardContent.dashboard;
-                const configured = (window.tableau.extensions.settings.get('configured') === 'true');
-                if (!configured) {
-                    this.configure();
-                } else {
-                    this.setState({
-                        configured: true,
-                    });
-                    this.findParameter();
-                    const settings  = window.tableau.extensions.settings.getAll();
-                    document.body.style.backgroundColor = settings.bg;
-                    document.body.style.color = settings.txt;
-                    const rgb = this.hexToRgb(settings.bg);
-                    if (rgb) {
-                        this.setState({
-                            bg:  `rgb(${Math.min(Math.floor(rgb.r / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.g / 2) + 127, 255)}, ${Math.min(Math.floor(rgb.b / 2) + 127, 255)})`,
-                        });
-                    }
-                }
-          });
-        }
+        window.tableau.extensions.initializeAsync({ configure: this.configure }).then(() => {
+            dashboard = window.tableau.extensions.dashboardContent.dashboard;
+            const settings = window.tableau.extensions.settings.getAll();
+            if (settings.configured === 'true') {
+                document.body.style.backgroundColor = settings.bg;
+                document.body.style.color = settings.txt;
+                this.setState({
+                    bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
+                    configured: true
+                });
+                this.findParameter();
+            } else {
+                this.configure();
+            }
+        });
     }
 
     public render() {
-      return (
-        <div style={{padding: 0, width: '100%', backgroundColor: this.state.bg}}>
-            <select id='data-driven-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{backgroundColor: this.state.bg}}>
-                {this.state.list.map( (option: any) => ( <option key={option.value} value={option.value}>{option.displayValue}</option> ) )}
-            </select>
-        </div>
-      );
+        return (
+            <DropdownSelect className='parameter' disabled={this.state.disabled} kind='outline' onChange={this.updateParam} value={this.state.currentVal} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
+                {this.state.list.map((option: string) => <option key={option}>{option}</option>)}
+            </DropdownSelect>
+        );
     }
 }
 

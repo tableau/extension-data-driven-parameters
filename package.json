@@ -4,7 +4,7 @@
     "private": true,
     "homepage": "https://tableau.github.io/extension-data-driven-parameters/",
     "dependencies": {
-        "@tableau/widgets": "^6.2.1",
+        "@tableau/tableau-ui": "^2.0.1",
         "@types/react-router-dom": "^4.2.7",
         "react": "^16.4.1",
         "react-dom": "^16.4.1",
@@ -13,24 +13,15 @@
     },
     "scripts": {
         "start": "react-scripts-ts start",
-        "build": "yarn install && yarn localize-compile && react-scripts-ts build && rd /s /q docs && mv build docs",
+        "build": "yarn install && react-scripts-ts build && rd /s /q docs && mv build docs",
         "test": "react-scripts-ts test --env=jsdom",
-        "eject": "react-scripts-ts eject",
-        "copy": "xcopy \"C:\\Users\\krose\\Documents\\GitLab\\data-driven-parameters\\build\" \"C:\\Users\\krose\\Documents\\GitHub\\Data-Driven-Parameter-Summary\" /i /s /y",
-        "localize-compile": "./node_modules/.bin/localize compile --out-dir public/compiled-locales"
+        "eject": "react-scripts-ts eject"
     },
     "devDependencies": {
-        "@tableau/localize": "6.0.2",
-        "@tableau/string-repo-db": "1.0.2",
         "@types/jest": "^23.1.5",
         "@types/node": "^10.5.2",
         "@types/react": "^16.4.6",
         "@types/react-dom": "^16.0.6",
         "typescript": "^2.9.2"
-    },
-    "localizeConfig": {
-        "dependencies": [
-            "./node_modules/@tableau/widgets"
-        ]
     }
 }
