@@ -154,6 +154,21 @@ input[type="color"] {
 
 .parameter {
     width: 100%;
+	font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	padding-left:6px;
+	border: solid 1px #CBCBCB;
+}
+
+.parameter option {
+	padding: 2px 2px 1px;
+	height: 20px;
+	display:flex;
+	align-items: center;
+}
+
+.singleParameter {
+    width: 100%;
 }
 
 .dropdown-select {
@@ -162,6 +177,11 @@ input[type="color"] {
     width: '100%';
 }
 
+.delimiter-text-field > input {
+    font-family: 'Benton Sans';
+    padding-right: 0;
+    text-align: center;
+}
 
 /* Internet Explorer 10+ */
 select::-ms-expand {

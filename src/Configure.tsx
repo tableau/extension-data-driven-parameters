@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, Checkbox, Radio } from '@tableau/tableau-ui';
+import { Button, Checkbox, Radio, TextField } from '@tableau/tableau-ui';
 import { Setting } from './Setting';
 
 /* tslint:disable:no-console */
@@ -14,12 +14,14 @@ let dashboard: any;
 interface State {
     bg: string,
     configured: boolean,
+    delimiter: string,
     field: string,
     field_config: boolean,
     field_enabled: boolean,
     field_list: string[],
     ignoreSelection: boolean,
     includeAllValue: boolean,
+    multiselect: boolean,
     param_config: boolean,
     param_enabled: boolean,
     param_list: string[],
@@ -42,12 +44,14 @@ class Configure extends React.Component<any, State> {
     public readonly state: State = {
         bg: '#ffffff',
         configured: false,
+        delimiter: '|',
         field: '',
         field_config: false,
         field_enabled: false,
         field_list: [],
         ignoreSelection: false,
         includeAllValue: false,
+        multiselect: false,
         param_config: false,
         param_enabled: false,
         param_list: [],
@@ -104,6 +108,16 @@ class Configure extends React.Component<any, State> {
     // Handles change in sort checkbox
     public sortChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ sort: e.target.value });
+    };
+
+    // Handles change in delimiter textbox
+    public delimiterChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ delimiter: e.target.value });
+    };
+
+    // Handles change in multiselect checkbox
+    public multiselectChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ multiselect: e.target.checked });
     };
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
@@ -324,6 +338,8 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('ignoreSelection', this.state.ignoreSelection);
         window.tableau.extensions.settings.set('useFormattedValues', this.state.useFormattedValues);
         window.tableau.extensions.settings.set('includeAllValue', this.state.includeAllValue);
+        window.tableau.extensions.settings.set('delimiter', this.state.delimiter);
+        window.tableau.extensions.settings.set('multiselect', this.state.multiselect);
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -358,8 +374,10 @@ class Configure extends React.Component<any, State> {
                 this.setState({
                     bg: settings.bg || '#ffffff',
                     configured: true,
+                    delimiter: settings.delimiter || '|',
                     ignoreSelection: settings.ignoreSelection === 'true' || false,
                     includeAllValue: settings.includeAllValue === 'true' || false,
+                    multiselect: settings.multiselect === 'true' || false,
                     sort: settings.sort || 'asc',
                     txt: settings.txt || '#000000',
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
@@ -417,6 +435,11 @@ class Configure extends React.Component<any, State> {
                                 Sorting: 
                                 <Radio checked={this.state.sort === 'asc'} onChange={this.sortChange} name='sorting' value='asc' style={{ margin: '0px 12px'}}>Ascending (A-Z)</Radio>
                                 <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
+                            </div>
+                            <div className='option'>
+                                <Checkbox checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
+                                <span children='Delimiter:' style={{ marginRight: '5px' }} />
+                                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect} maxLength={1} style={{ width: 20 }} />
                             </div>
                         </div>
 

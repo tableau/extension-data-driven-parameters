@@ -14,9 +14,10 @@ let parameter: any;
 interface State {
     bg: string,
     configured: boolean,
-    currentVal: string,
+    currentVal: any[],
     disabled: boolean,
     list: any,
+    multiselect: boolean,
 }
 
 const NeedsConfiguring: string = 'Parameter needs configuration';
@@ -43,25 +44,29 @@ class DataDrivenParameter extends React.Component<any, State> {
     public readonly state: State = {
         bg: '#ffffff',
         configured: false,
-        currentVal: NeedsConfiguring,
+        currentVal: [NeedsConfiguring],
         disabled: true,
         list: [NeedsConfiguring],
+        multiselect: false,
     };
 
     // Pops open the configure page
     public configure = (): void => {
         const popupUrl = (window.location.origin.includes('localhost')) ? `${window.location.origin}/#/config` : `${window.location.origin}/extension-data-driven-parameters/#/config`;
         const payload = '';
-        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 600, width: 450 }).then((closePayload: string) => {
+        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 650, width: 450 }).then((closePayload: string) => {
             const settings = window.tableau.extensions.settings.getAll();
             if (closePayload !== '') {
                 document.body.style.backgroundColor = settings.bg;
                 document.body.style.color = settings.txt;
-                this.setState({ bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff') });
+                this.setState({ 
+                    bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
+                    multiselect: settings.multiselect === 'true',
+                });
                 this.findParameter();
             } else {
                 this.setState({
-                    currentVal: NeedsConfiguring,
+                    currentVal: [NeedsConfiguring],
                     disabled: true,
                     list: [NeedsConfiguring],
                 });
@@ -69,7 +74,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         }).catch((error: any) => {
             if (window.tableau.extensions.settings.get('configured') !== 'true') {
                 this.setState({
-                    currentVal: NeedsConfiguring,
+                    currentVal: [NeedsConfiguring],
                     disabled: true,
                     list: [NeedsConfiguring],
                 });
@@ -91,7 +96,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             parameter = param;
             if (!parameter || parameter.allowableValues.type !== 'all') {
                 this.setState({
-                    currentVal: NeedsConfiguring,
+                    currentVal: [NeedsConfiguring],
                     disabled: true,
                     list: [NeedsConfiguring],
                 });
@@ -108,7 +113,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
         if (!worksheet) {
             this.setState({
-                currentVal: NeedsConfiguring,
+                currentVal: [NeedsConfiguring],
                 disabled: true,
                 list: [NeedsConfiguring],
             });
@@ -125,7 +130,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
         if (!field) {
             this.setState({
-                currentVal: NeedsConfiguring,
+                currentVal: [NeedsConfiguring],
                 disabled: true,
                 list: [NeedsConfiguring],
             });
@@ -167,7 +172,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             }
 
             this.setState({
-                currentVal,
+                currentVal: [currentVal],
                 disabled: false,
                 list,
             });
@@ -181,7 +186,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
         if (!worksheet) {
             this.setState({
-                currentVal: NeedsConfiguring,
+                currentVal: [NeedsConfiguring],
                 disabled: true,
                 list: [NeedsConfiguring],
             });
@@ -193,19 +198,30 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Updates the parameter based on selection in Data-Driven Parameter
     public updateParam = (e: any) => {
-        const newValue = e.target.value;
+        const settings = window.tableau.extensions.settings.getAll();
+        const values = [];
+        let newValue;
+        for (const opt of e.target.options) {
+            if (opt.selected) {
+            values.push(opt.value);
+            }
+        }
+        newValue = values.join(settings.delimiter);
+
         if (!parameter) {
             this.setState({
-                currentVal: NeedsConfiguring,
+                currentVal: [NeedsConfiguring],
                 disabled: true,
                 list: [NeedsConfiguring],
             });
         } else {
             parameter.changeValueAsync(newValue);
-            this.setState({ currentVal: newValue });
+            this.setState({ currentVal: values }, () => {console.log(this.state.currentVal)});
         }
         // Include to refresh domain on every selection:
-        this.getParamData();
+        if (!this.state.multiselect){
+            this.getParamData();
+        }
     }
 
     // Once we have mounted, we call to initialize
@@ -218,7 +234,8 @@ class DataDrivenParameter extends React.Component<any, State> {
                 document.body.style.color = settings.txt;
                 this.setState({
                     bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
-                    configured: true
+                    configured: true,
+                    multiselect: settings.multiselect === 'true',
                 });
                 this.findParameter();
             } else {
@@ -229,9 +246,18 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     public render() {
         return (
-            <DropdownSelect className='parameter' disabled={this.state.disabled} kind='outline' onChange={this.updateParam} value={this.state.currentVal} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
-                {this.state.list.map((option: string) => <option key={option}>{option}</option>)}
-            </DropdownSelect>
+            <React.Fragment>
+                <div style={{display: (this.state.multiselect ? 'flex' : 'none')}}>
+                    <select multiple={true} id='multi-select-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{backgroundColor: this.state.bg, color: 'inherit' }}>
+                    {this.state.list.map( (option: any) => ( <option key={option} value={option}>{option}</option> ) )}
+                </select>
+                </div>
+                <div style={{display: (!this.state.multiselect ? 'flex' : 'none')}}>
+                    <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
+                        {this.state.list.map((option: string) => <option key={option}>{option}</option>)}
+                    </DropdownSelect>
+                </div>
+            </React.Fragment>
         );
     }
 }
