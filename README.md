@@ -14,5 +14,5 @@ Download the Data-Driven Parameter [manifest file](https://extensiongallery.tabl
 7. Optional: Configure the options and formatting settings.
 8. Click 'OK'.
 
-## Open Source Discrepancy Notice
-The source code found in this repository uses the Tableau UI components library. However, due to a bug in the current version of Qt used in Tableau Desktop, html selects do not allow for mouse selection on Mac and instead require the keyboard for selections. Because of this we will be using an alternative div dropdown in the production bundle until we are able to upgrade Qt.
+### Mac Desktop 2018.3 and lower
+Note: Please use arrow keys and 'Enter' to select dropdown options.
