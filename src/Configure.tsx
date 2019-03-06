@@ -357,7 +357,7 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('delimiter', this.state.delimiter);
         window.tableau.extensions.settings.set('multiselect', (this.state.dataType !== 'string' ? 'false' : this.state.multiselect));
         window.tableau.extensions.settings.set('autoUpdate', this.state.autoUpdate);
-        window.tableau.extensions.settings.set('dataType', this.state.dataType);
+        window.tableau.extensions.settings.set('dataType', this.state.dataType || 'string');
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
