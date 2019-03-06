@@ -1,22 +1,8 @@
-@font-face {
-    font-family: 'Benton Sans';
-    src: url(./fonts/BentonSans-Book.woff);
-    font-style: normal;
-    font-weight: normal;
-}
-
-@font-face {
-    font-family: 'Benton Sans Medium';
-    src: url(./fonts/BentonSans-Medium.woff);
-    font-style: normal;
-    font-weight: bold;
-}
-
 html,
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Benton Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
     font-size: 12px;
     color: rgba(0, 0, 0, 0.8);
     box-sizing: border-box;
@@ -50,7 +36,7 @@ body {
 }
 
 .title {
-    font-family: 'Benton Sans Medium';
+    font-family: 'Benton Sans Medium', Arial, Helvetica, sans-serif;
     font-size: 12px;
     color: rgba(0, 0, 0, 0.8);
     margin: 30px 0px 18px 0px;
@@ -178,7 +164,7 @@ input[type="color"] {
 }
 
 .delimiter-text-field > input {
-    font-family: 'Benton Sans';
+    font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
     padding-right: 0;
     text-align: center;
 }

@@ -16,6 +16,7 @@ interface State {
     configured: boolean,
     currentVal: any[],
     disabled: boolean,
+    firstInit: boolean,
     list: any,
     multiselect: boolean,
 }
@@ -46,6 +47,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         configured: false,
         currentVal: [NeedsConfiguring],
         disabled: true,
+        firstInit: true,
         list: [NeedsConfiguring],
         multiselect: false,
     };
@@ -54,7 +56,7 @@ class DataDrivenParameter extends React.Component<any, State> {
     public configure = (): void => {
         const popupUrl = (window.location.origin.includes('localhost')) ? `${window.location.origin}/#/config` : `${window.location.origin}/extension-data-driven-parameters/#/config`;
         const payload = '';
-        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 650, width: 450 }).then((closePayload: string) => {
+        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 700, width: 450 }).then((closePayload: string) => {
             const settings = window.tableau.extensions.settings.getAll();
             if (closePayload !== '') {
                 document.body.style.backgroundColor = settings.bg;
@@ -160,22 +162,20 @@ class DataDrivenParameter extends React.Component<any, State> {
             }
 
             let currentVal;
-            // Test if current Tableau parameter value is in list, if so change extension value to it
-            if (list.find(item => item === parameter.currentValue.value)) {
+            // Determine wether to use current param value or first value of list based on settings and if current Tableau parameter value is in list
+            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit)) && list.find(item => item === parameter.currentValue.value)) {
                 currentVal = parameter.currentValue.value;
             } else {
-                if (settings.includeAllValue === 'true') {
-                    currentVal = list[1];
-                } else {
-                    currentVal = list[0];
-                }
+                currentVal = (settings.includeAllValue === 'true' ? list[1] : list[0]);
             }
 
             this.setState({
                 currentVal: [currentVal],
                 disabled: false,
+                firstInit: false,
                 list,
             });
+            
             parameter.changeValueAsync(currentVal);
         }
     }

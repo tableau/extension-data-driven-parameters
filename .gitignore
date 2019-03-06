@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/src/fonts
 
 # compiled locales
 /public/compiled-locales
@@ -18,6 +19,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.npmrc
 
 npm-debug.log*
 yarn-debug.log*

@@ -12,8 +12,10 @@ declare global {
 let dashboard: any;
 
 interface State {
+    autoUpdate: boolean,
     bg: string,
     configured: boolean,
+    dataType: string,
     delimiter: string,
     field: string,
     field_config: boolean,
@@ -42,8 +44,10 @@ const NoParametersFound: string = 'No open input parameters found!';
 
 class Configure extends React.Component<any, State> {
     public readonly state: State = {
+        autoUpdate: false,
         bg: '#ffffff',
         configured: false,
+        dataType: 'string',
         delimiter: '|',
         field: '',
         field_config: false,
@@ -100,7 +104,7 @@ class Configure extends React.Component<any, State> {
         this.setState({ useFormattedValues: e.target.checked });
     };
 
-    // Handles change in useFormattedValues checkbox
+    // Handles change in "(All)" checkbox
     public allChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ includeAllValue: e.target.checked });
     };
@@ -118,6 +122,11 @@ class Configure extends React.Component<any, State> {
     // Handles change in multiselect checkbox
     public multiselectChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ multiselect: e.target.checked });
+    };
+
+    // Handles change in auto update checkbox
+    public autoUpdateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ autoUpdate: e.target.checked });
     };
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
@@ -173,8 +182,15 @@ class Configure extends React.Component<any, State> {
     // Sets which tableau parameter to update
     public setParam = (): void => {
         if (this.state.parameter !== '') {
-            this.setState({ param_config: true });
-            this.populateWS();
+            dashboard.findParameterAsync(this.state.parameter).then((param: any) => {
+                this.setState({ 
+                    dataType: param.dataType,
+                    includeAllValue: (param.dataType === 'string' ? this.state.includeAllValue : false),
+                    multiselect: (param.dataType === 'string' ? this.state.multiselect : false),
+                    param_config: true,
+                });
+                this.populateWS();
+            });
         }
     }
 
@@ -337,9 +353,11 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('sort', this.state.sort);
         window.tableau.extensions.settings.set('ignoreSelection', this.state.ignoreSelection);
         window.tableau.extensions.settings.set('useFormattedValues', this.state.useFormattedValues);
-        window.tableau.extensions.settings.set('includeAllValue', this.state.includeAllValue);
+        window.tableau.extensions.settings.set('includeAllValue', (this.state.dataType !== 'string' ? 'false' : this.state.includeAllValue));
         window.tableau.extensions.settings.set('delimiter', this.state.delimiter);
-        window.tableau.extensions.settings.set('multiselect', this.state.multiselect);
+        window.tableau.extensions.settings.set('multiselect', (this.state.dataType !== 'string' ? 'false' : this.state.multiselect));
+        window.tableau.extensions.settings.set('autoUpdate', this.state.autoUpdate);
+        window.tableau.extensions.settings.set('dataType', this.state.dataType);
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -372,8 +390,10 @@ class Configure extends React.Component<any, State> {
             const settings = window.tableau.extensions.settings.getAll();
             if (settings.configured === 'true') {
                 this.setState({
+                    autoUpdate: settings.autoUpdate === 'true' || false,
                     bg: settings.bg || '#ffffff',
                     configured: true,
+                    dataType: settings.dataType,
                     delimiter: settings.delimiter || '|',
                     ignoreSelection: settings.ignoreSelection === 'true' || false,
                     includeAllValue: settings.includeAllValue === 'true' || false,
@@ -409,6 +429,8 @@ class Configure extends React.Component<any, State> {
                                         <li>Select a worksheet with the data you want to use in your parameter.</li>
                                         <li>Select a field to use to populate the parameter. Field data type must match the data type of parameter.</li>
                                     </ol>
+                                    <br/>
+                                    <p>Note: Mac Desktop 2018.3 and lower, please use arrow keys and 'Enter' to select options</p>
                                 </span>
                             </div>
                         </div>
@@ -429,7 +451,7 @@ class Configure extends React.Component<any, State> {
                                 <Checkbox checked={this.state.useFormattedValues} onChange={this.aliasChange} style={{ flexGrow: 1}}>Use aliased values</Checkbox>
                             </div>
                             <div className='option'>
-                                <Checkbox checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
+                                <Checkbox checked={this.state.autoUpdate} onChange={this.autoUpdateChange} style={{ flexGrow: 1}}>Automatically reset values on load.</Checkbox>
                             </div>
                             <div className='option'>
                                 Sorting: 
@@ -437,7 +459,13 @@ class Configure extends React.Component<any, State> {
                                 <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
                             </div>
                             <div className='option'>
-                                <Checkbox checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
+                                <p><i>For use with string parameters only:</i></p>
+                            </div>
+                            <div className='option'>
+                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
+                            </div>
+                            <div className='option'>
+                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
                                 <span children='Delimiter:' style={{ marginRight: '5px' }} />
                                 <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect} maxLength={1} style={{ width: 20 }} />
                             </div>
