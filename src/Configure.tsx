@@ -136,6 +136,7 @@ class Configure extends React.Component<any, State> {
             dashboard.findParameterAsync(settings.selParam).then((param: any) => {
                 if (param && param.allowableValues.type === 'all') {
                     this.setState({
+                        dataType: param.dataType,
                         param_config: true,
                         parameter: param.name,
                     });
