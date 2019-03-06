@@ -467,7 +467,7 @@ class Configure extends React.Component<any, State> {
                             <div className='option'>
                                 <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
                                 <span children='Delimiter:' style={{ marginRight: '5px' }} />
-                                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect} maxLength={1} style={{ width: 20 }} />
+                                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
                             </div>
                         </div>
 
