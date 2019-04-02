@@ -147,15 +147,25 @@ class DataDrivenParameter extends React.Component<any, State> {
             list = list.filter((item, index, inputArray) => {
                 return inputArray.indexOf(item) === index;
             });
-
-            // Sort according to settings
-            if (settings.sort && settings.sort === 'desc') {
-                list.sort();
-                list.reverse();
+            
+            if(settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
+                list = list.map(Number);
+                // Sort according to settings (numerical)
+                if (settings.sort && settings.sort === 'desc') {
+                    list.sort((a, b) => b - a);
+                } else {
+                    list.sort((a, b) => a - b);
+                }
             } else {
-                list.sort();
+                // Sort according to settings
+                if (settings.sort && settings.sort === 'desc') {
+                    list.sort();
+                    list.reverse();
+                } else {
+                    list.sort();
+                }
             }
-
+            
             // Add '(All)' according to settings
             if (settings.includeAllValue === 'true') {
                 list.unshift('(All)');
@@ -163,7 +173,7 @@ class DataDrivenParameter extends React.Component<any, State> {
 
             let currentVal;
             // Determine wether to use current param value or first value of list based on settings and if current Tableau parameter value is in list
-            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit)) && list.find(item => item === parameter.currentValue.value)) {
+            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit)) && list.find(item => item.toString() === parameter.currentValue.value.toString())) {
                 currentVal = parameter.currentValue.value;
             } else {
                 currentVal = (settings.includeAllValue === 'true' ? list[1] : list[0]);
