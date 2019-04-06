@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, Checkbox, Radio, TextField } from '@tableau/tableau-ui';
+import { Button, Checkbox, Radio, TextField} from '@tableau/tableau-ui';
 import { Setting } from './Setting';
 
 /* tslint:disable:no-console */
@@ -47,7 +47,7 @@ class Configure extends React.Component<any, State> {
         autoUpdate: false,
         bg: '#ffffff',
         configured: false,
-        dataType: 'string',
+        dataType: '',
         delimiter: '|',
         field: '',
         field_config: false,
@@ -459,17 +459,21 @@ class Configure extends React.Component<any, State> {
                                 <Radio checked={this.state.sort === 'asc'} onChange={this.sortChange} name='sorting' value='asc' style={{ margin: '0px 12px'}}>Ascending (A-Z)</Radio>
                                 <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
                             </div>
-                            <div className='option'>
-                                <p><i>For use with string parameters only:</i></p>
-                            </div>
-                            <div className='option'>
-                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
-                            </div>
-                            <div className='option'>
-                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
-                                <span children='Delimiter:' style={{ marginRight: '5px' }} />
-                                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
-                            </div>
+                            { this.state.dataType === 'string' && // This is displayed only when a string parameter is selected
+                                <div>
+                                    <div className='option'>
+                                        <p><i>For use with string parameters only:</i></p>
+                                    </div>
+                                    <div className='option'>
+                                        <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
+                                    </div>
+                                    <div className='option'>
+                                        <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
+                                        <span children='Delimiter:' style={{ marginRight: '5px' }} />
+                                        <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         <div className='title'>Formatting</div>
