@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, Checkbox, Radio, TextField} from '@tableau/tableau-ui';
+import { Button, Checkbox, DropdownSelect, Radio, TextField} from '@tableau/tableau-ui';
 import { Setting } from './Setting';
 
 /* tslint:disable:no-console */
@@ -16,6 +16,7 @@ interface State {
     bg: string,
     configured: boolean,
     dataType: string,
+    dateFormat: any,
     delimiter: string,
     field: string,
     field_config: boolean,
@@ -41,6 +42,15 @@ const Loading: string = 'Loading...';
 const NoFieldsFound: string = 'No fields found that match parameter!';
 const NoWorksheetsFound: string = 'No worksheets found!';
 const NoParametersFound: string = 'No open input parameters found!';
+const DateFormatAvailable: string[] = [];
+const DateFormatList: any[] = [
+    {},
+    {year: '2-digit', month: 'numeric', day: 'numeric'},
+    {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'},
+    {year: 'numeric', month: 'long', day: 'numeric'},
+    {year: 'numeric', month: 'short', day: 'numeric'},
+    {year: 'numeric', month: 'long' }
+];
 
 class Configure extends React.Component<any, State> {
     public readonly state: State = {
@@ -48,6 +58,7 @@ class Configure extends React.Component<any, State> {
         bg: '#ffffff',
         configured: false,
         dataType: '',
+        dateFormat: {},
         delimiter: '|',
         field: '',
         field_config: false,
@@ -68,6 +79,14 @@ class Configure extends React.Component<any, State> {
         ws_enabled: false,
         ws_list: [],
     };
+
+    // Generate date formats based on the tableau instance's locale
+    public generateDateFormatList() {
+        const exampleDate = new Date();
+        DateFormatList.forEach(option => {
+            DateFormatAvailable.push(exampleDate.toLocaleDateString('en', option));
+        });        
+    }
 
     // Handles change in background color input
     public bgChange = (color: any): void => {
@@ -127,6 +146,10 @@ class Configure extends React.Component<any, State> {
     // Handles change in auto update checkbox
     public autoUpdateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ autoUpdate: e.target.checked });
+    };
+
+    public dateFormatChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({ dateFormat: DateFormatList[e.target.value] });
     };
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
@@ -198,6 +221,7 @@ class Configure extends React.Component<any, State> {
     // Clears setting for which tableau parameter to update
     public clearParam = (): void => {
         this.setState({
+            dataType: '',
             param_config: false,
             param_enabled: true,
             ws_enabled: false,
@@ -359,6 +383,7 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('multiselect', (this.state.dataType !== 'string' ? 'false' : this.state.multiselect));
         window.tableau.extensions.settings.set('autoUpdate', this.state.autoUpdate);
         window.tableau.extensions.settings.set('dataType', this.state.dataType || 'string');
+        window.tableau.extensions.settings.set('dateFormat', this.state.dateFormat || {});
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -369,6 +394,7 @@ class Configure extends React.Component<any, State> {
     public clearSettings = (): void => {
         this.setState({
             configured: false,
+            dataType: '',
             field: '',
             field_config: false,
             field_enabled: false,
@@ -389,12 +415,16 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.initializeDialogAsync().then(() => {
             dashboard = window.tableau.extensions.dashboardContent.dashboard;
             const settings = window.tableau.extensions.settings.getAll();
+            // window.tableau.environment
+            this.generateDateFormatList();
+
             if (settings.configured === 'true') {
                 this.setState({
                     autoUpdate: settings.autoUpdate === 'true' || false,
                     bg: settings.bg || '#ffffff',
                     configured: true,
                     dataType: settings.dataType,
+                    dateFormat: settings.dateFormat || {},
                     delimiter: settings.delimiter || '|',
                     ignoreSelection: settings.ignoreSelection === 'true' || false,
                     includeAllValue: settings.includeAllValue === 'true' || false,
@@ -471,6 +501,24 @@ class Configure extends React.Component<any, State> {
                                         <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
                                         <span children='Delimiter:' style={{ marginRight: '5px' }} />
                                         <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
+                                    </div>
+                                </div>
+                            }
+                            { this.state.dataType === 'date' && // This is displayed only when a date parameter is selected
+                                <div>
+                                    <div className='option'>
+                                        <p><i>For use with date parameters only:</i></p>
+                                    </div>
+                                    <div className='option'>
+                                        <p style= {{ margin: '0px 12px 0px 0px' }}>Date format:</p>                                     
+                                        <DropdownSelect 
+                                            disabled= {this.state.dataType !== 'date'}
+                                            kind='line'
+                                            onChange={this.dateFormatChange}
+                                            onSelect={this.dateFormatChange}
+                                        >
+                                            {DateFormatAvailable.map((v: string, k: number) => <option key={k} value={k}>{v}</option>)}
+                                        </DropdownSelect>
                                     </div>
                                 </div>
                             }
