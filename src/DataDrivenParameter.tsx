@@ -16,12 +16,21 @@ interface State {
     configured: boolean,
     currentVal: any[],
     disabled: boolean,
+    displayedList: any,
     firstInit: boolean,
     list: any,
     multiselect: boolean,
 }
 
 const NeedsConfiguring: string = 'Parameter needs configuration';
+const DateFormatList: any[] = [
+    {},
+    {year: '2-digit', month: 'numeric', day: 'numeric'},
+    {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'},
+    {year: 'numeric', month: 'long', day: 'numeric'},
+    {year: 'numeric', month: 'short', day: 'numeric'},
+    {year: 'numeric', month: 'long' }
+];
 
 function fakeWhiteOverlay(hex: string) {
     const rgb = hexToRgb(hex);
@@ -47,6 +56,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         configured: false,
         currentVal: [NeedsConfiguring],
         disabled: true,
+        displayedList: [NeedsConfiguring],
         firstInit: true,
         list: [NeedsConfiguring],
         multiselect: false,
@@ -70,6 +80,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 this.setState({
                     currentVal: [NeedsConfiguring],
                     disabled: true,
+                    displayedList: [NeedsConfiguring],
                     list: [NeedsConfiguring],
                 });
             }
@@ -78,6 +89,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 this.setState({
                     currentVal: [NeedsConfiguring],
                     disabled: true,
+                    displayedList: [NeedsConfiguring],
                     list: [NeedsConfiguring],
                 });
             }
@@ -100,6 +112,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 this.setState({
                     currentVal: [NeedsConfiguring],
                     disabled: true,
+                    displayedList: [NeedsConfiguring],
                     list: [NeedsConfiguring],
                 });
             } else {
@@ -117,6 +130,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             this.setState({
                 currentVal: [NeedsConfiguring],
                 disabled: true,
+                displayedList: [NeedsConfiguring],
                 list: [NeedsConfiguring],
             });
         } else {
@@ -130,14 +144,18 @@ class DataDrivenParameter extends React.Component<any, State> {
     public populateParam(dataTable: any) {
         const settings = window.tableau.extensions.settings.getAll();
         const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
+        const lang = window.tableau.extensions.environment.language;
+
         if (!field) {
             this.setState({
                 currentVal: [NeedsConfiguring],
                 disabled: true,
+                displayedList: [NeedsConfiguring],
                 list: [NeedsConfiguring],
             });
         } else {
             let list = [];
+            let displayedList = [];
             // Populate list with values from data source
             for (const row of dataTable.data) {
                 list.push((settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value));
@@ -165,7 +183,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                     list.sort();
                 }
             }
-            
+
             // Add '(All)' according to settings
             if (settings.includeAllValue === 'true') {
                 list.unshift('(All)');
@@ -179,9 +197,16 @@ class DataDrivenParameter extends React.Component<any, State> {
                 currentVal = (settings.includeAllValue === 'true' ? list[1] : list[0]);
             }
 
+            if (settings.dataType === 'date') {
+                displayedList = list.map(value => new Date(value).toLocaleDateString(lang, DateFormatList[parseInt(settings.dateFormatIndex, 10)]));               
+            } else {
+                displayedList = list;
+            }
+
             this.setState({
                 currentVal: [currentVal],
                 disabled: false,
+                displayedList,
                 firstInit: false,
                 list,
             });
@@ -222,6 +247,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             this.setState({
                 currentVal: [NeedsConfiguring],
                 disabled: true,
+                displayedList: [NeedsConfiguring],
                 list: [NeedsConfiguring],
             });
         } else {
@@ -259,12 +285,12 @@ class DataDrivenParameter extends React.Component<any, State> {
             <React.Fragment>
                 <div style={{display: (this.state.multiselect ? 'flex' : 'none')}}>
                     <select multiple={true} id='multi-select-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{backgroundColor: this.state.bg, color: 'inherit' }}>
-                    {this.state.list.map( (option: any) => ( <option key={option} value={option}>{option}</option> ) )}
+                    {this.state.list.map( (option: any, index: number) => ( <option key={option} value={option}>{this.state.displayedList[index]}</option> ) )}
                 </select>
                 </div>
                 <div style={{display: (!this.state.multiselect ? 'flex' : 'none')}}>
                     <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map((option: string) => <option key={option}>{option}</option>)}
+                        {this.state.list.map((option: string, index: number) => <option key={option}>{this.state.displayedList[index]}</option>)}
                     </DropdownSelect>
                 </div>
             </React.Fragment>

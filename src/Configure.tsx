@@ -16,7 +16,7 @@ interface State {
     bg: string,
     configured: boolean,
     dataType: string,
-    dateFormat: any,
+    dateFormatIndex: number,
     delimiter: string,
     field: string,
     field_config: boolean,
@@ -30,6 +30,7 @@ interface State {
     param_list: string[],
     parameter: string,
     sort: string,
+    test: string,
     txt: string,
     useFormattedValues: boolean,
     worksheet: string,
@@ -58,7 +59,7 @@ class Configure extends React.Component<any, State> {
         bg: '#ffffff',
         configured: false,
         dataType: '',
-        dateFormat: {},
+        dateFormatIndex: 0,
         delimiter: '|',
         field: '',
         field_config: false,
@@ -72,6 +73,7 @@ class Configure extends React.Component<any, State> {
         param_list: [],
         parameter: '',
         sort: 'asc',
+        test: '',
         txt: '#000000',
         useFormattedValues: false,
         worksheet: '',
@@ -81,10 +83,10 @@ class Configure extends React.Component<any, State> {
     };
 
     // Generate date formats based on the tableau instance's locale
-    public generateDateFormatList() {
+    public generateDateFormatList(lang: string = 'en') {
         const exampleDate = new Date();
         DateFormatList.forEach(option => {
-            DateFormatAvailable.push(exampleDate.toLocaleDateString('en', option));
+            DateFormatAvailable.push(exampleDate.toLocaleDateString(lang, option));
         });        
     }
 
@@ -149,7 +151,7 @@ class Configure extends React.Component<any, State> {
     };
 
     public dateFormatChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        this.setState({ dateFormat: DateFormatList[e.target.value] });
+        this.setState({ dateFormatIndex: parseInt(e.target.value, 10) } );
     };
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
@@ -382,8 +384,8 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('delimiter', this.state.delimiter);
         window.tableau.extensions.settings.set('multiselect', (this.state.dataType !== 'string' ? 'false' : this.state.multiselect));
         window.tableau.extensions.settings.set('autoUpdate', this.state.autoUpdate);
-        window.tableau.extensions.settings.set('dataType', this.state.dataType || 'string');
-        window.tableau.extensions.settings.set('dateFormat', this.state.dateFormat || {});
+        window.tableau.extensions.settings.set('dataType', this.state.dataType || '');
+        window.tableau.extensions.settings.set('dateFormatIndex', this.state.dateFormatIndex);
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -395,6 +397,7 @@ class Configure extends React.Component<any, State> {
         this.setState({
             configured: false,
             dataType: '',
+            dateFormatIndex: 0,
             field: '',
             field_config: false,
             field_enabled: false,
@@ -415,8 +418,7 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.initializeDialogAsync().then(() => {
             dashboard = window.tableau.extensions.dashboardContent.dashboard;
             const settings = window.tableau.extensions.settings.getAll();
-            // window.tableau.environment
-            this.generateDateFormatList();
+            this.generateDateFormatList(window.tableau.extensions.environment.language);
 
             if (settings.configured === 'true') {
                 this.setState({
@@ -424,12 +426,13 @@ class Configure extends React.Component<any, State> {
                     bg: settings.bg || '#ffffff',
                     configured: true,
                     dataType: settings.dataType,
-                    dateFormat: settings.dateFormat || {},
+                    dateFormatIndex: settings.dateFormat,
                     delimiter: settings.delimiter || '|',
                     ignoreSelection: settings.ignoreSelection === 'true' || false,
                     includeAllValue: settings.includeAllValue === 'true' || false,
                     multiselect: settings.multiselect === 'true' || false,
                     sort: settings.sort || 'asc',
+                    test: settings.test,
                     txt: settings.txt || '#000000',
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
                 });
@@ -516,8 +519,11 @@ class Configure extends React.Component<any, State> {
                                             kind='line'
                                             onChange={this.dateFormatChange}
                                             onSelect={this.dateFormatChange}
+                                            value={this.state.dateFormatIndex}
                                         >
-                                            {DateFormatAvailable.map((v: string, k: number) => <option key={k} value={k}>{v}</option>)}
+                                            {
+                                                DateFormatAvailable.map((v: string, k: number) => <option key={k} value={k}> {v} </option>)
+                                            }
                                         </DropdownSelect>
                                     </div>
                                 </div>
