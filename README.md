@@ -14,5 +14,8 @@ Download the Data-Driven Parameter [manifest file](https://extensiongallery.tabl
 7. Optional: Configure the options and formatting settings.
 8. Click 'OK'.
 
+## Support
+If you have questions about the extension or found a bug please open a new [issue](https://github.com/tableau/extension-data-driven-parameters/issues).
+
 ### Mac Desktop 2018.3 and lower
 Note: Please use arrow keys and 'Enter' to select dropdown options.
