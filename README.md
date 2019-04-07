@@ -15,7 +15,7 @@ Download the Data-Driven Parameter [manifest file](https://extensiongallery.tabl
 8. Click 'OK'.
 
 ## How to install for local use
-Make sure you have [Node.js](https://nodejs.org) and [Yarn](https://yarnpkg.com) isntalled. 
+Make sure you have [Node.js](https://nodejs.org) and [Yarn](https://yarnpkg.com) installed. 
 Clone or download and unzip this repository. Open the command line to the `extension-data-driven-parameters-master` folder and run:
 
 `yarn` to install
