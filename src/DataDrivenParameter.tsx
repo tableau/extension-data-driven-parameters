@@ -290,7 +290,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 </div>
                 <div style={{display: (!this.state.multiselect ? 'flex' : 'none')}}>
                     <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map((option: string, index: number) => <option key={option}>{this.state.displayedList[index]}</option>)}
+                        {this.state.list.map((option: string, index: number) => <option key={option} value={option}>{this.state.displayedList[index]}</option>)}
                     </DropdownSelect>
                 </div>
             </React.Fragment>
