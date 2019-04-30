@@ -15,14 +15,14 @@ Download the Data-Driven Parameter [manifest file](https://extensiongallery.tabl
 8. Click 'OK'.
 
 ## How to install for local use
-Make sure you have [Node.js](https://nodejs.org) and [Yarn](https://yarnpkg.com) installed. 
-Clone or download and unzip this repository. Open the command line to the `extension-data-driven-parameters-master` folder and run:
-
-`yarn` to install
-
-`yarn start` to run
-
-`yarn build` to build
+1. Make sure you have [Node.js](https://nodejs.org) and [Yarn](https://yarnpkg.com) installed. 
+2. Clone or download and unzip this repository. Open the command line to the `extension-data-driven-parameters-master` folder and run `yarn` to install the node modules.
+3. Edit the `homepage` in the `package.json` file to the server where you are going to host the extension. For example:
+```
+"homepage": "http://localhost:8080",
+```
+4. In the command line run `yarn build` to build the extension with the new homepage.
+5. Copy the files in `docs` to your web server at the path you specified in Step 3.
 
 ## Support
 If you have questions about the extension or found a bug please open a new [issue](https://github.com/tableau/extension-data-driven-parameters/issues).
