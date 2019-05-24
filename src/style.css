@@ -17,6 +17,7 @@ body {
 }
 
 .container {
+    padding: 0px 18px 0px 18px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -24,13 +25,13 @@ body {
 }
 
 .content {
-    margin-left: 6px;
+    margin-left: 10px;
 }
 
 .header {
     font-size: 16px;
     color: rgba(0, 0, 0, 0.8);
-	padding: 12px 0px 12px 18px;
+    margin-top: 12px;
     display: flex;
 }
 
@@ -69,7 +70,6 @@ p {
 .footer {
     display: flex;
     align-items: flex-end;
-	margin: 0px 18px;
 }
 
 .btncluster {

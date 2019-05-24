@@ -2,7 +2,7 @@ import * as React from 'react';
 import './style.css';
 
 /* tslint:disable:no-console */
-import { Button, DropdownSelect } from '@tableau/tableau-ui';
+import { DropdownSelect } from '@tableau/tableau-ui';
 
 declare global {
     interface Window { tableau: any; }
@@ -12,17 +12,16 @@ let dashboard: any;
 let parameter: any;
 
 interface State {
-    applyButton: boolean,
     bg: string,
     configured: boolean,
     currentVal: any[],
     disabled: boolean,
     firstInit: boolean,
-    list: any[],
+    list: any,
     multiselect: boolean,
 }
 
-const NeedsConfiguring: any = {value: 'Parameter needs configuration', displayValue: 'Parameter needs configuration'};
+const NeedsConfiguring: string = 'Parameter needs configuration';
 
 function fakeWhiteOverlay(hex: string) {
     const rgb = hexToRgb(hex);
@@ -44,7 +43,6 @@ function hexToRgb(hex: string) {
 
 class DataDrivenParameter extends React.Component<any, State> {
     public readonly state: State = {
-        applyButton: false,
         bg: '#ffffff',
         configured: false,
         currentVal: [NeedsConfiguring],
@@ -56,18 +54,16 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Pops open the configure page
     public configure = (): void => {
-        console.log(`process.env.PUBLIC_URL=${process.env.PUBLIC_URL}`)
         const popupUrl = (window.location.origin.includes('localhost')) ? `${window.location.origin}/#/config` : `${window.location.origin}/extension-data-driven-parameters/#/config`;
         const payload = '';
-        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 525, width: 450 }).then((closePayload: string) => {
+        window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 700, width: 450 }).then((closePayload: string) => {
             const settings = window.tableau.extensions.settings.getAll();
             if (closePayload !== '') {
                 document.body.style.backgroundColor = settings.bg;
                 document.body.style.color = settings.txt;
                 this.setState({ 
-                    applyButton: settings.applyButton === 'true' || false,
                     bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
-                    multiselect: settings.multiselect === 'true' || false,
+                    multiselect: settings.multiselect === 'true',
                 });
                 this.findParameter();
             } else {
@@ -134,7 +130,6 @@ class DataDrivenParameter extends React.Component<any, State> {
     public populateParam(dataTable: any) {
         const settings = window.tableau.extensions.settings.getAll();
         const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
-        const displayField = dataTable.columns.find((column: any) => column.fieldName === settings.displayField);
         if (!field) {
             this.setState({
                 currentVal: [NeedsConfiguring],
@@ -142,68 +137,56 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list: [NeedsConfiguring],
             });
         } else {
-            let list: any[]  = [];
+            let list = [];
             // Populate list with values from data source
             for (const row of dataTable.data) {
-                const value = settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value;
-                let displayValue = value;
-                if (displayField && settings.showDisplayValues === 'true') {
-                    displayValue = row[displayField.index].formattedValue
-                }
-                list.push({
-                    displayValue,
-                    value,
-                });
+                list.push((settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value));
             }
-            
+
             // Remove duplicates
-            list = list.filter((item, index, self) => self.findIndex(t => t.value === item.value) === index)
+            list = list.filter((item, index, inputArray) => {
+                return inputArray.indexOf(item) === index;
+            });
             
             if(settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
-                // Convert to numbers for correct sort
-                list = list.map((item) => ( {value: Number(item.value), displayValue: item.displayValue}))
+                list = list.map(Number);
                 // Sort according to settings (numerical)
                 if (settings.sort && settings.sort === 'desc') {
-                    list.sort((a, b) => b.value - a.value);
+                    list.sort((a, b) => b - a);
                 } else {
-                    list.sort((a, b) => a.value - b.value);
-                }
-                if (settings.dataType === 'float') {
-                    list = list.map((item) => ( {value: item.value.toLocaleString(window.tableau.extensions.environment.locale), displayValue: item.displayValue}));
+                    list.sort((a, b) => a - b);
                 }
             } else {
                 // Sort according to settings
                 if (settings.sort && settings.sort === 'desc') {
-                    list.sort((a, b) => a.value < b.value ? 1 : -1);
+                    list.sort();
+                    list.reverse();
                 } else {
-                    list.sort((a, b) => a.value > b.value ? 1 : -1);
+                    list.sort();
                 }
             }
             
             // Add '(All)' according to settings
             if (settings.includeAllValue === 'true') {
-                list.unshift({value: '(All)', displayValue: '(All)'});
+                list.unshift('(All)');
             }
 
             let currentVal;
-            // Determine wether to use current param value or first value of list based on settings
-            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit))  ) {
-                if (settings.multiselect === 'true') {
-                    currentVal = parameter.currentValue.value.split(settings.delimiter)
-                } else {
-                    currentVal = [parameter.currentValue.value];
-                }
+            // Determine wether to use current param value or first value of list based on settings and if current Tableau parameter value is in list
+            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit)) && list.find(item => item.toString() === parameter.currentValue.value.toString())) {
+                currentVal = parameter.currentValue.value;
             } else {
-                currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
+                currentVal = (settings.includeAllValue === 'true' ? list[1] : list[0]);
             }
+
             this.setState({
-                currentVal,
+                currentVal: [currentVal],
                 disabled: false,
                 firstInit: false,
                 list,
             });
             
-            parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
+            parameter.changeValueAsync(currentVal);
         }
     }
 
@@ -226,7 +209,7 @@ class DataDrivenParameter extends React.Component<any, State> {
     // Updates the parameter based on selection in Data-Driven Parameter
     public updateParam = (e: any) => {
         const settings = window.tableau.extensions.settings.getAll();
-        const values: any = [];
+        const values = [];
         let newValue;
         for (const opt of e.target.options) {
             if (opt.selected) {
@@ -242,23 +225,13 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list: [NeedsConfiguring],
             });
         } else {
+            parameter.changeValueAsync(newValue);
             this.setState({ currentVal: values }, () => {console.log(this.state.currentVal)});
-            if (!settings.applyButton || settings.applyButton === 'false') {
-                parameter.changeValueAsync(newValue);
-            }
         }
-
-        // Refresh domain on every selection. Keeps original functionality for those with older settings.
-        if (!settings.updateOnChange || settings.updateOnChange === 'true') {
-            if (!this.state.multiselect){
-                this.getParamData();
-            }
+        // Include to refresh domain on every selection:
+        if (!this.state.multiselect){
+            this.getParamData();
         }
-    }
-
-    public apply = (): void => {
-        const settings = window.tableau.extensions.settings.getAll();
-        parameter.changeValueAsync(this.state.currentVal.join(settings.delimiter))
     }
 
     // Once we have mounted, we call to initialize
@@ -270,10 +243,9 @@ class DataDrivenParameter extends React.Component<any, State> {
                 document.body.style.backgroundColor = settings.bg;
                 document.body.style.color = settings.txt;
                 this.setState({
-                    applyButton: settings.applyButton === 'true' || false,
                     bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
                     configured: true,
-                    multiselect: settings.multiselect === 'true' || false,
+                    multiselect: settings.multiselect === 'true',
                 });
                 this.findParameter();
             } else {
@@ -285,15 +257,14 @@ class DataDrivenParameter extends React.Component<any, State> {
     public render() {
         return (
             <React.Fragment>
-                <div style={{display: (this.state.multiselect ? 'flex' : 'none'), flexDirection: 'column'}}>
+                <div style={{display: (this.state.multiselect ? 'flex' : 'none')}}>
                     <select multiple={true} id='multi-select-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map( (option: any) => ( <option key={option.value || option.value} value={option.value}>{option.displayValue}</option> ) )}
-                    </select>
-                    <Button kind='filled' onClick={this.apply} style={{ display: (this.state.applyButton ? 'block' : 'none'), marginTop: '6px', width: '60px', height: '20px', marginLeft: 'auto' }}>Apply</Button>
+                    {this.state.list.map( (option: any) => ( <option key={option} value={option}>{option}</option> ) )}
+                </select>
                 </div>
                 <div style={{display: (!this.state.multiselect ? 'flex' : 'none')}}>
                     <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map((option: any) => <option key={option.value} value={option.value}>{option.displayValue}</option>)}
+                        {this.state.list.map((option: string) => <option key={option}>{option}</option>)}
                     </DropdownSelect>
                 </div>
             </React.Fragment>
