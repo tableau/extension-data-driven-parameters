@@ -56,7 +56,8 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Pops open the configure page
     public configure = (): void => {
-        const popupUrl = `${window.location.origin}${process.env.PUBLIC_URL}/#/config`;
+        console.log(`process.env.PUBLIC_URL=${process.env.PUBLIC_URL}`)
+        const popupUrl = (window.location.origin.includes('localhost')) ? `${window.location.origin}/#/config` : `${window.location.origin}/extension-data-driven-parameters/#/config`;
         const payload = '';
         window.tableau.extensions.ui.displayDialogAsync(popupUrl, payload, { height: 525, width: 450 }).then((closePayload: string) => {
             const settings = window.tableau.extensions.settings.getAll();
