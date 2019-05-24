@@ -14,6 +14,7 @@
     "scripts": {
         "start": "react-scripts-ts start",
         "build": "react-scripts-ts build && rd /s /q docs && mv build docs",
+        "alpha": "set PUBLIC_URL=/extension-data-driven-parameters/alpha&&react-scripts-ts build && rd /s /q \"docs/alpha\" && mv build \"docs/alpha\"",
         "test": "react-scripts-ts test --env=jsdom",
         "eject": "react-scripts-ts eject"
     },

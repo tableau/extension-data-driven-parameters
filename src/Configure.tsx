@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, Checkbox, Radio, TextField } from '@tableau/tableau-ui';
+import { Button, Checkbox, DropdownSelect, Radio, Tabs, TextField } from '@tableau/tableau-ui';
 import { Setting } from './Setting';
 
 /* tslint:disable:no-console */
@@ -12,11 +12,13 @@ declare global {
 let dashboard: any;
 
 interface State {
+    applyButton: boolean,
     autoUpdate: boolean,
     bg: string,
     configured: boolean,
     dataType: string,
     delimiter: string,
+    displayField: string,
     field: string,
     field_config: boolean,
     field_enabled: boolean,
@@ -28,8 +30,11 @@ interface State {
     param_enabled: boolean,
     param_list: string[],
     parameter: string,
+    selectedTabIndex: number;
+    showDisplayValues: boolean,
     sort: string,
     txt: string,
+    updateOnChange: boolean,
     useFormattedValues: boolean,
     worksheet: string,
     ws_config: boolean,
@@ -44,24 +49,29 @@ const NoParametersFound: string = 'No open input parameters found!';
 
 class Configure extends React.Component<any, State> {
     public readonly state: State = {
+        applyButton: false,
         autoUpdate: false,
         bg: '#ffffff',
         configured: false,
         dataType: 'string',
         delimiter: '|',
+        displayField: '',
         field: '',
         field_config: false,
         field_enabled: false,
         field_list: [],
-        ignoreSelection: false,
+        ignoreSelection: true,
         includeAllValue: false,
         multiselect: false,
         param_config: false,
         param_enabled: false,
         param_list: [],
         parameter: '',
+        selectedTabIndex: 0,
+        showDisplayValues: false,
         sort: 'asc',
         txt: '#000000',
+        updateOnChange: true,
         useFormattedValues: false,
         worksheet: '',
         ws_config: false,
@@ -88,45 +98,70 @@ class Configure extends React.Component<any, State> {
     public fieldChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         this.setState({ field: e.target.value });
     };
-
+    
     // Handles selection in worksheet dropdown
     public wsChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
         this.setState({ worksheet: e.target.value });
     };
-
+    
     // Handles change in ignoreSelection checkbox
     public ignoreSelectionChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ ignoreSelection: !e.target.checked });
     };
-
+    
     // Handles change in useFormattedValues checkbox
     public aliasChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ useFormattedValues: e.target.checked });
     };
-
+    
     // Handles change in "(All)" checkbox
     public allChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ includeAllValue: e.target.checked });
     };
-
+    
     // Handles change in sort checkbox
     public sortChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ sort: e.target.value });
     };
-
+    
     // Handles change in delimiter textbox
     public delimiterChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ delimiter: e.target.value });
     };
-
+    
     // Handles change in multiselect checkbox
     public multiselectChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ multiselect: e.target.checked });
     };
-
+    
+    // Handles change in apply button checkbox
+    public applyChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ applyButton: e.target.checked });
+    };
+    
     // Handles change in auto update checkbox
     public autoUpdateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         this.setState({ autoUpdate: e.target.checked });
+    };
+    
+    // Handles change in showDisplayValues checkbox
+    public displayChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ showDisplayValues: e.target.checked });
+    };
+    
+    // Handles selection in display values dropdown
+    public displayFieldChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+        this.setState({ displayField: e.target.value });
+    };
+    
+    // Handles change in updateOnChange checkbox
+    public updateOnChangeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ updateOnChange: e.target.checked });
+    };
+
+    // Handles change in options tabs   
+    public tabChange = (index: any): void => {
+        this.setState({ selectedTabIndex: index });
     };
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
@@ -164,6 +199,7 @@ class Configure extends React.Component<any, State> {
                     dropdownList.push(p.name);
                 }
             }
+            dropdownList.sort();
             if (dropdownList.length > 0) {
                 this.setState({
                     param_enabled: true,
@@ -235,6 +271,7 @@ class Configure extends React.Component<any, State> {
         for (const ws of dashboard.worksheets) {
             dropdownList.push(ws.name);
         }
+        dropdownList.sort();
         if (dropdownList.length > 0) {
             this.setState({
                 worksheet: dropdownList[0],
@@ -274,11 +311,17 @@ class Configure extends React.Component<any, State> {
         if (this.state.configured) {
             dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync().then((dataTable: any) => {
                 if (dataTable.columns.find((column: any) => column.fieldName === settings.selField)) {
+                    const dropdownList: string[] = [];
+                    for (const f of dataTable.columns) {
+                        dropdownList.push(f.fieldName);
+                    }
+                    dropdownList.sort();
                     this.setState({
                         configured: true,
                         field: settings.selField,
                         field_config: true,
                         field_enabled: false,
+                        field_list: dropdownList,
                     });
                 } else {
                     this.populateFieldList();
@@ -308,6 +351,7 @@ class Configure extends React.Component<any, State> {
                         dropdownList.push(f.fieldName);
                     }
                 }
+                dropdownList.sort();
                 if (dropdownList.length > 0) {
                     this.setState({
                         field: dropdownList[0],
@@ -332,6 +376,19 @@ class Configure extends React.Component<any, State> {
                 field_config: true,
             });
         }
+
+        // For display values list
+        dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync().then((dataTable: any) => {
+            const dropdownList: string[] = [];
+            for (const f of dataTable.columns) {
+                dropdownList.push(f.fieldName);
+            }
+            dropdownList.sort();
+            this.setState({
+                displayField: dropdownList[0],
+                field_list: dropdownList,
+            });
+        });
     }
 
     // Clears the field to pull values from for Data-Driven Parameter
@@ -359,6 +416,10 @@ class Configure extends React.Component<any, State> {
         window.tableau.extensions.settings.set('multiselect', (this.state.dataType !== 'string' ? 'false' : this.state.multiselect));
         window.tableau.extensions.settings.set('autoUpdate', this.state.autoUpdate);
         window.tableau.extensions.settings.set('dataType', this.state.dataType || 'string');
+        window.tableau.extensions.settings.set('showDisplayValues', this.state.showDisplayValues);
+        window.tableau.extensions.settings.set('displayField', this.state.displayField);
+        window.tableau.extensions.settings.set('updateOnChange', this.state.updateOnChange);
+        window.tableau.extensions.settings.set('applyButton', this.state.applyButton);
         window.tableau.extensions.settings.set('configured', 'true');
         window.tableau.extensions.settings.saveAsync().then(() => {
             window.tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -369,6 +430,7 @@ class Configure extends React.Component<any, State> {
     public clearSettings = (): void => {
         this.setState({
             configured: false,
+            displayField: '',
             field: '',
             field_config: false,
             field_enabled: false,
@@ -376,6 +438,7 @@ class Configure extends React.Component<any, State> {
             param_config: false,
             param_list: [],
             parameter: '',
+            showDisplayValues: false,
             worksheet: '',
             ws_config: false,
             ws_enabled: false,
@@ -391,16 +454,20 @@ class Configure extends React.Component<any, State> {
             const settings = window.tableau.extensions.settings.getAll();
             if (settings.configured === 'true') {
                 this.setState({
+                    applyButton: settings.applyButton === 'true' || false,
                     autoUpdate: settings.autoUpdate === 'true' || false,
                     bg: settings.bg || '#ffffff',
                     configured: true,
                     dataType: settings.dataType,
                     delimiter: settings.delimiter || '|',
-                    ignoreSelection: settings.ignoreSelection === 'true' || false,
+                    displayField: settings.displayField || '',
+                    ignoreSelection: (settings.ignoreSelection ? settings.ignoreSelection === 'true' : true),
                     includeAllValue: settings.includeAllValue === 'true' || false,
                     multiselect: settings.multiselect === 'true' || false,
+                    showDisplayValues: settings.showDisplayValues === 'true' || false,
                     sort: settings.sort || 'asc',
                     txt: settings.txt || '#000000',
+                    updateOnChange: (settings.updateOnChange ? settings.updateOnChange === 'true' : true),
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
                 });
                 this.testParamSettings();
@@ -411,6 +478,72 @@ class Configure extends React.Component<any, State> {
     }
 
     public render() {
+        const configuration = <div className='content'>                      
+            <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextConfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled && !this.state.param_config} list={this.state.param_list} onChange={this.paramChange} />
+            <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextConfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
+            <Setting selecting='field' onClick={this.setField} onClear={this.clearField} config={this.state.field_config} selected={this.state.field} enabled={this.state.field_enabled} list={this.state.field_list} onChange={this.fieldChange} />
+        </div>;
+
+        const options = <div className='content'>
+            <div className='option'>
+                <Checkbox checked={!this.state.ignoreSelection} onChange={this.ignoreSelectionChange} style={{ flexGrow: 1}}>Filter parameter list based on worksheet selections</Checkbox>
+            </div>
+            <div className='option'>
+                <Checkbox checked={this.state.autoUpdate} onChange={this.autoUpdateChange} style={{ flexGrow: 1}}>Automatically reset values on dashboard load.</Checkbox>
+            </div>
+            <div className='option'>
+                <Checkbox checked={this.state.updateOnChange} onChange={this.updateOnChangeChange} style={{ flexGrow: 1}}>Update list of values on parameter change.</Checkbox>
+            </div>
+            <div className='option'>
+                Sorting: 
+                <Radio checked={this.state.sort === 'asc'} onChange={this.sortChange} name='sorting' value='asc' style={{ margin: '0px 12px'}}>Ascending (A-Z)</Radio>
+                <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
+            </div>
+            <div className='option'>
+                <Checkbox disabled={!this.state.field_config} checked={this.state.showDisplayValues} onChange={this.displayChange} style={{ marginRight: '10px' }}>Use different field for display values</Checkbox>
+                <div style={{display: 'flex', width: '150px'}}>
+                <DropdownSelect className='dropdown-select' disabled={!this.state.showDisplayValues || !this.state.field_config} kind='line' onChange={this.displayFieldChange} value={this.state.displayField} style={{ flexGrow: 1}}>
+                    {this.state.field_list.map(option => <option key={option}>{option}</option>)}
+                </DropdownSelect></div>
+            </div>
+            <div className='option'>
+                <p><i>For use with string parameters only:</i></p>
+            </div>
+            <div className='option'>
+                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.useFormattedValues && this.state.dataType === 'string'} onChange={this.aliasChange} style={{ flexGrow: 1}}>Use aliased values</Checkbox>
+            </div>                            
+            <div className='option'>
+                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.includeAllValue  && this.state.dataType === 'string'} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
+            </div>
+            <div className='option'>
+                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect  && this.state.dataType === 'string'} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
+                <span children='Delimiter:' style={{ marginRight: '5px' }} />
+                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
+            </div>
+            <div className='option'>
+                <Checkbox disabled={!this.state.multiselect} checked={this.state.applyButton && this.state.multiselect} onChange={this.applyChange} style={{ flexGrow: 1}}>Show apply button.</Checkbox>
+            </div>
+        </div>;
+
+        const formatting = <div className='content'>
+            <div className='format'>
+                <div className='formattext'>Background Color</div>
+                <div>
+                    <input type='color' value={this.state.bg} onChange={this.bgChange} style={{ backgroundColor: this.state.bg }} />
+                </div>
+            </div>
+            <div className='format'>
+                <div className='formattext'>Text Color</div>
+                <div>
+                    <input type='color' value={this.state.txt} onChange={this.txtChange} style={{ backgroundColor: this.state.txt }} />
+                </div>
+            </div>
+        </div>;
+
+        const panels = [configuration, options, formatting];
+        const tabs = [ { content: 'Configure' }, { content: 'Options' }, { content: 'Formatting' } ];
+        // const initialState = { selectedTabIndex: 0 };
+
         return (
             <React.Fragment>
                 <div className='container'>
@@ -435,60 +568,13 @@ class Configure extends React.Component<any, State> {
                                 </span>
                             </div>
                         </div>
-
-                        <div className='title' style={{marginTop: '18px'}}>Configure Parameter</div>
-                        <div className='content'>                      
-                            <Setting selecting='parameter' onClick={this.setParam} onClear={this.clearParam} config={this.state.param_config} nextConfig={this.state.ws_config} selected={this.state.parameter} enabled={this.state.param_enabled && !this.state.param_config} list={this.state.param_list} onChange={this.paramChange} />
-                            <Setting selecting='worksheet' onClick={this.setWS} onClear={this.clearWS} config={this.state.ws_config} nextConfig={this.state.field_config} selected={this.state.worksheet} enabled={this.state.ws_enabled} list={this.state.ws_list} onChange={this.wsChange} />
-                            <Setting selecting='field' onClick={this.setField} onClear={this.clearField} config={this.state.field_config} selected={this.state.field} enabled={this.state.field_enabled} list={this.state.field_list} onChange={this.fieldChange} />
+                        <div className='tabs'>
+                            <Tabs activation='automatic' alignment='left' onTabChange={this.tabChange} selectedTabIndex={this.state.selectedTabIndex} tabs={tabs}>
+                                {panels[this.state.selectedTabIndex]}
+                            </Tabs>
                         </div>
-
-                        <div className='title'>Options</div>
-                        <div className='content'>
-                            <div className='option'>
-                                <Checkbox checked={!this.state.ignoreSelection} onChange={this.ignoreSelectionChange} style={{ flexGrow: 1}}>Filter parameter list based on worksheet selections</Checkbox>
-                            </div>
-                            <div className='option'>
-                                <Checkbox checked={this.state.useFormattedValues} onChange={this.aliasChange} style={{ flexGrow: 1}}>Use aliased values</Checkbox>
-                            </div>
-                            <div className='option'>
-                                <Checkbox checked={this.state.autoUpdate} onChange={this.autoUpdateChange} style={{ flexGrow: 1}}>Automatically reset values on load.</Checkbox>
-                            </div>
-                            <div className='option'>
-                                Sorting: 
-                                <Radio checked={this.state.sort === 'asc'} onChange={this.sortChange} name='sorting' value='asc' style={{ margin: '0px 12px'}}>Ascending (A-Z)</Radio>
-                                <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px'}}>Descending (Z-A)</Radio>
-                            </div>
-                            <div className='option'>
-                                <p><i>For use with string parameters only:</i></p>
-                            </div>
-                            <div className='option'>
-                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.includeAllValue} onChange={this.allChange} style={{ flexGrow: 1}}>Include "(All)" in parameter list <br/> <i>Note: This is only a placeholder for calculations.</i></Checkbox>
-                            </div>
-                            <div className='option'>
-                                <Checkbox disabled={this.state.dataType !== 'string'} checked={this.state.multiselect} onChange={this.multiselectChange} style={{ marginRight: '10px'}}>Allow for multiple selections.</Checkbox>
-                                <span children='Delimiter:' style={{ marginRight: '5px' }} />
-                                <TextField kind='line' onChange={this.delimiterChange} className='delimiter-text-field' value={this.state.delimiter} disabled={!this.state.multiselect || this.state.dataType !== 'string'} maxLength={1} style={{ width: 20 }} />
-                            </div>
-                        </div>
-
-                        <div className='title'>Formatting</div>
-                        <div className='content'>
-                            <div className='format'>
-                                <div className='formattext'>Background Color</div>
-                                <div>
-                                    <input type='color' value={this.state.bg} onChange={this.bgChange} style={{ backgroundColor: this.state.bg }} />
-                                </div>
-                            </div>
-                            <div className='format'>
-                                <div className='formattext'>Text Color</div>
-                                <div>
-                                    <input type='color' value={this.state.txt} onChange={this.txtChange} style={{ backgroundColor: this.state.txt }} />
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
+
                     <div className='footer'>
                         <div className='btncluster'>
                             <Button onClick={this.clearSettings} style={{ marginRight: 'auto' }}>Clear Settings</Button>
