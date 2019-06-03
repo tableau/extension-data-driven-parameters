@@ -71,7 +71,7 @@ class Configure extends React.Component<any, State> {
         showDisplayValues: false,
         sort: 'asc',
         txt: '#000000',
-        updateOnChange: true,
+        updateOnChange: false,
         useFormattedValues: false,
         worksheet: '',
         ws_config: false,
