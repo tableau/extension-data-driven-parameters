@@ -2,7 +2,6 @@
 
 # dependencies
 /node_modules
-/src/fonts
 
 # compiled locales
 /public/compiled-locales

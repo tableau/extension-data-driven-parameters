@@ -13,8 +13,8 @@
     },
     "scripts": {
         "start": "react-scripts-ts start",
-        "build": "react-scripts-ts build && rd /s /q docs && mv build docs",
-        "alpha": "set PUBLIC_URL=/extension-data-driven-parameters/alpha&&react-scripts-ts build && rd /s /q \"docs/alpha\" && mv build \"docs/alpha\"",
+        "build": "react-scripts-ts build && (if exist rd /s /q docs) && move build docs",
+        "release": "set PUBLIC_URL=/extension-data-driven-parameters/2.0.0&&react-scripts-ts build && (if exist \"docs/2.0.0\" rd /s /q \"docs/2.0.0\") && move build \"docs/2.0.0\"",
         "test": "react-scripts-ts test --env=jsdom",
         "eject": "react-scripts-ts eject"
     },
