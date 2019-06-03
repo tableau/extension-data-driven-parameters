@@ -467,7 +467,7 @@ class Configure extends React.Component<any, State> {
                     showDisplayValues: settings.showDisplayValues === 'true' || false,
                     sort: settings.sort || 'asc',
                     txt: settings.txt || '#000000',
-                    updateOnChange: (settings.updateOnChange ? settings.updateOnChange === 'true' : true),
+                    updateOnChange: settings.updateOnChange === 'true' || false,
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
                 });
                 this.testParamSettings();
