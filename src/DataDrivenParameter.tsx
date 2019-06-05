@@ -8,7 +8,6 @@ declare global {
     interface Window { tableau: any; }
 }
 
-let dashboard: any;
 let parameter: any;
 
 interface State {
@@ -23,6 +22,7 @@ interface State {
 }
 
 const NeedsConfiguring: any = {value: 'Parameter needs configuration', displayValue: 'Parameter needs configuration'};
+const Loading: any = {value: 'Loading...', displayValue: 'Loading...'};
 
 function fakeWhiteOverlay(hex: string) {
     const rgb = hexToRgb(hex);
@@ -47,10 +47,10 @@ class DataDrivenParameter extends React.Component<any, State> {
         applyButton: false,
         bg: '#ffffff',
         configured: false,
-        currentVal: [NeedsConfiguring],
+        currentVal: [Loading],
         disabled: true,
         firstInit: true,
-        list: [NeedsConfiguring],
+        list: [Loading],
         multiselect: false,
     };
 
@@ -114,6 +114,7 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Gets the values from the selected field and populates the Data-Driven Parameter
     public getParamData = (): void => {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
         const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
         if (!worksheet) {
@@ -131,6 +132,11 @@ class DataDrivenParameter extends React.Component<any, State> {
 
     // Pulls domain of selected field
     public populateParam(dataTable: any) {
+        this.setState({
+            currentVal: [Loading],
+            disabled: true,
+            list: [Loading],
+        });
         const settings = window.tableau.extensions.settings.getAll();
         const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
         const displayField = dataTable.columns.find((column: any) => column.fieldName === settings.displayField);
@@ -195,19 +201,21 @@ class DataDrivenParameter extends React.Component<any, State> {
             } else {
                 currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
             }
+
+            parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
+
             this.setState({
                 currentVal,
                 disabled: false,
                 firstInit: false,
                 list,
             });
-            
-            parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
         }
     }
 
     // Adds event listener to worksheet
     public setupWsEvent() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
         const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
         if (!worksheet) {
@@ -263,7 +271,6 @@ class DataDrivenParameter extends React.Component<any, State> {
     // Once we have mounted, we call to initialize
     public componentWillMount() {
         window.tableau.extensions.initializeAsync({ configure: this.configure }).then(() => {
-            dashboard = window.tableau.extensions.dashboardContent.dashboard;
             const settings = window.tableau.extensions.settings.getAll();
             if (settings.configured === 'true') {
                 document.body.style.backgroundColor = settings.bg;
@@ -276,6 +283,11 @@ class DataDrivenParameter extends React.Component<any, State> {
                 });
                 this.findParameter();
             } else {
+                this.setState({
+                    currentVal: [NeedsConfiguring],
+                    disabled: true,
+                    list: [NeedsConfiguring],
+                });
                 this.configure();
             }
         });

@@ -9,8 +9,6 @@ declare global {
     interface Window { tableau: any; }
 }
 
-let dashboard: any;
-
 interface State {
     applyButton: boolean,
     autoUpdate: boolean,
@@ -166,6 +164,7 @@ class Configure extends React.Component<any, State> {
 
     // Tests if extension is configured and if so, if the parameter in settings exists and accepts all values
     public testParamSettings() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
             dashboard.findParameterAsync(settings.selParam).then((param: any) => {
@@ -188,6 +187,7 @@ class Configure extends React.Component<any, State> {
 
     // Gets list of parameters in workbook and populates dropdown
     public populateParamList() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         this.setState({
             param_list: [Loading],
             parameter: Loading,
@@ -218,6 +218,7 @@ class Configure extends React.Component<any, State> {
 
     // Sets which tableau parameter to update
     public setParam = (): void => {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         if (this.state.parameter !== '') {
             dashboard.findParameterAsync(this.state.parameter).then((param: any) => {
                 this.setState({ 
@@ -243,6 +244,7 @@ class Configure extends React.Component<any, State> {
 
     // Tests if extension is configured and if so, if the worksheet in settings exists
     public testWSSettings() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
             if (dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet)) {
@@ -263,6 +265,7 @@ class Configure extends React.Component<any, State> {
 
     // Gets list of worksheets in dashboard and populates dropdown
     public populateWS() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         this.setState({
             worksheet: Loading,
             ws_list: [Loading],
@@ -307,6 +310,7 @@ class Configure extends React.Component<any, State> {
 
     // Tests if extension is configued and if so, if the field in settings exists on the selected worksheet
     public testFieldSettings() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
         if (this.state.configured) {
             dashboard.worksheets.find((w: any) => w.name === this.state.worksheet).getSummaryDataAsync().then((dataTable: any) => {
@@ -335,6 +339,7 @@ class Configure extends React.Component<any, State> {
 
     // Gets list of fields in previously selected worksheet's data and populates dropdown
     public populateFieldList() {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         this.setState({
             field: Loading,
             field_list: [Loading],
@@ -370,6 +375,7 @@ class Configure extends React.Component<any, State> {
 
     // Sets the field to pull values from for Data-Driven Parameter
     public setField = (): void => {
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         if (this.state.field !== '') {
             this.setState({
                 configured: true,
@@ -450,7 +456,6 @@ class Configure extends React.Component<any, State> {
     // Once we have mounted, we call to initialize
     public componentWillMount() {
         window.tableau.extensions.initializeDialogAsync().then(() => {
-            dashboard = window.tableau.extensions.dashboardContent.dashboard;
             const settings = window.tableau.extensions.settings.getAll();
             if (settings.configured === 'true') {
                 this.setState({
