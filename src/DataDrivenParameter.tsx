@@ -162,7 +162,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             }
             
             // Remove duplicates
-            list = list.filter((item, index, self) => self.findIndex(t => t.value === item.value) === index)
+            list = list.filter((item, index, array) => array.indexOf(array.find(i => i.value === item.value)) === index);
             
             if(settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
                 // Convert to numbers for correct sort
