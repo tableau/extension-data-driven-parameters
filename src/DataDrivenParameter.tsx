@@ -190,18 +190,34 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list.unshift({value: '(All)', displayValue: '(All)'});
             }
 
-            let currentVal;
+            let currentVal: any;
             // Determine wether to use current param value or first value of list based on settings
             if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit))  ) {
                 if (settings.multiselect === 'true') {
-                    currentVal = parameter.currentValue.value.split(settings.delimiter)
+                    // Use current param values if found in list, otherwise pick first of list.
+                    const tablist = [];
+                    for (const value of parameter.currentValue.value.split(settings.delimiter)){
+                        if (list.find(v => v.value === value)) {
+                            tablist.push(value)
+                        }
+                    }
+                    if (tablist.length > 0){
+                        currentVal = tablist;
+                    } else {
+                        currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
+                    }
                 } else {
-                    currentVal = [parameter.currentValue.value];
+                    // Use current param value if found in list, otherwise pick first of list.
+                    if (list.find(v => v.value === parameter.currentValue.value)) {
+                        currentVal = [parameter.currentValue.value];
+                    } else {
+                        currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
+                    }
                 }
             } else {
                 currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
             }
-
+            
             parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
 
             this.setState({
