@@ -1,6 +1,15 @@
 {
-  "main.css": "static/css/main.f989a51b.css",
-  "main.css.map": "static/css/main.f989a51b.css.map",
-  "main.js": "static/js/main.eb84d9c1.js",
-  "main.js.map": "static/js/main.eb84d9c1.js.map"
+  "files": {
+    "main.css": "/extension-data-driven-parameters/static/css/main.21b6fafe.chunk.css",
+    "main.js": "/extension-data-driven-parameters/static/js/main.3ac4c659.chunk.js",
+    "main.js.map": "/extension-data-driven-parameters/static/js/main.3ac4c659.chunk.js.map",
+    "runtime~main.js": "/extension-data-driven-parameters/static/js/runtime~main.01d56cb3.js",
+    "runtime~main.js.map": "/extension-data-driven-parameters/static/js/runtime~main.01d56cb3.js.map",
+    "static/js/2.502996f1.chunk.js": "/extension-data-driven-parameters/static/js/2.502996f1.chunk.js",
+    "static/js/2.502996f1.chunk.js.map": "/extension-data-driven-parameters/static/js/2.502996f1.chunk.js.map",
+    "index.html": "/extension-data-driven-parameters/index.html",
+    "precache-manifest.e2dc5ff9fa676b2e5c38dc890f8e3add.js": "/extension-data-driven-parameters/precache-manifest.e2dc5ff9fa676b2e5c38dc890f8e3add.js",
+    "service-worker.js": "/extension-data-driven-parameters/service-worker.js",
+    "static/css/main.21b6fafe.chunk.css.map": "/extension-data-driven-parameters/static/css/main.21b6fafe.chunk.css.map"
+  }
 }
