@@ -197,7 +197,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                     // Use current param values if found in list, otherwise pick first of list.
                     const tablist = [];
                     for (const value of parameter.currentValue.value.split(settings.delimiter)){
-                        if (list.find(v => v.value === value)) {
+                        if (list.find(v => v.value.toString() === value || v.value === value)) {
                             tablist.push(value)
                         }
                     }
@@ -208,7 +208,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                     }
                 } else {
                     // Use current param value if found in list, otherwise pick first of list.
-                    if (list.find(v => v.value === parameter.currentValue.value)) {
+                    if (list.find(v => v.value.toString() === parameter.currentValue.value ||  v.value === parameter.currentValue.value)) {
                         currentVal = [parameter.currentValue.value];
                     } else {
                         currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
