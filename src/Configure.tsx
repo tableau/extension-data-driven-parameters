@@ -68,7 +68,7 @@ class Configure extends React.Component<any, State> {
         selectedTabIndex: 0,
         showDisplayValues: false,
         sort: 'asc',
-        txt: '#000000',
+        txt: '#333333',
         updateOnChange: false,
         useFormattedValues: false,
         worksheet: '',
@@ -471,7 +471,7 @@ class Configure extends React.Component<any, State> {
                     multiselect: settings.multiselect === 'true' || false,
                     showDisplayValues: settings.showDisplayValues === 'true' || false,
                     sort: settings.sort || 'asc',
-                    txt: settings.txt || '#000000',
+                    txt: settings.txt || '#333333',
                     updateOnChange: settings.updateOnChange === 'true' || false,
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
                 });

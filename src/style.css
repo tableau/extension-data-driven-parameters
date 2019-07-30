@@ -155,6 +155,7 @@ input[type="color"] {
 
 .singleParameter {
     width: 100%;
+	min-height: 20px !important;
 }
 
 .dropdown-select {

@@ -21,8 +21,8 @@ interface State {
     multiselect: boolean,
 }
 
-const NeedsConfiguring: any = {value: 'Parameter needs configuration', displayValue: 'Parameter needs configuration'};
-const Loading: any = {value: 'Loading...', displayValue: 'Loading...'};
+const NeedsConfiguring: any = { value: 'Parameter needs configuration', displayValue: 'Parameter needs configuration' };
+const Loading: any = { value: 'Loading...', displayValue: 'Loading...' };
 
 function fakeWhiteOverlay(hex: string) {
     const rgb = hexToRgb(hex);
@@ -63,7 +63,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             if (closePayload !== '') {
                 document.body.style.backgroundColor = settings.bg;
                 document.body.style.color = settings.txt;
-                this.setState({ 
+                this.setState({
                     applyButton: settings.applyButton === 'true' || false,
                     bg: (settings.bg ? fakeWhiteOverlay(settings.bg) : '#ffffff'),
                     multiselect: settings.multiselect === 'true' || false,
@@ -147,7 +147,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list: [NeedsConfiguring],
             });
         } else {
-            let list: any[]  = [];
+            let list: any[] = [];
             // Populate list with values from data source
             for (const row of dataTable.data) {
                 const value = settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value;
@@ -160,13 +160,13 @@ class DataDrivenParameter extends React.Component<any, State> {
                     value,
                 });
             }
-            
+
             // Remove duplicates
             list = list.filter((item, index, array) => array.indexOf(array.find(i => i.value === item.value)) === index);
-            
-            if(settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
+
+            if (settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
                 // Convert to numbers for correct sort
-                list = list.map((item) => ( {value: Number(item.value), displayValue: item.displayValue}))
+                list = list.map((item) => ({ value: Number(item.value), displayValue: item.displayValue }))
                 // Sort according to settings (numerical)
                 if (settings.sort && settings.sort === 'desc') {
                     list.sort((a, b) => b.value - a.value);
@@ -174,7 +174,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                     list.sort((a, b) => a.value - b.value);
                 }
                 if (settings.dataType === 'float') {
-                    list = list.map((item) => ( {value: item.value.toLocaleString(window.tableau.extensions.environment.locale), displayValue: item.displayValue}));
+                    list = list.map((item) => ({ value: item.value.toLocaleString(window.tableau.extensions.environment.locale), displayValue: item.displayValue }));
                 }
             } else {
                 // Sort according to settings
@@ -184,31 +184,31 @@ class DataDrivenParameter extends React.Component<any, State> {
                     list.sort((a, b) => a.value > b.value ? 1 : -1);
                 }
             }
-            
+
             // Add '(All)' according to settings
             if (settings.includeAllValue === 'true') {
-                list.unshift({value: '(All)', displayValue: '(All)'});
+                list.unshift({ value: '(All)', displayValue: '(All)' });
             }
 
             let currentVal: any;
             // Determine wether to use current param value or first value of list based on settings
-            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit))  ) {
+            if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit))) {
                 if (settings.multiselect === 'true') {
                     // Use current param values if found in list, otherwise pick first of list.
                     const tablist = [];
-                    for (const value of parameter.currentValue.value.split(settings.delimiter)){
+                    for (const value of parameter.currentValue.value.split(settings.delimiter)) {
                         if (list.find(v => v.value.toString() === value || v.value === value)) {
                             tablist.push(value)
                         }
                     }
-                    if (tablist.length > 0){
+                    if (tablist.length > 0) {
                         currentVal = tablist;
                     } else {
                         currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
                     }
                 } else {
                     // Use current param value if found in list, otherwise pick first of list.
-                    if (list.find(v => v.value.toString() === parameter.currentValue.value ||  v.value === parameter.currentValue.value)) {
+                    if (list.find(v => v.value.toString() === parameter.currentValue.value || v.value === parameter.currentValue.value)) {
                         currentVal = [parameter.currentValue.value];
                     } else {
                         currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
@@ -217,7 +217,7 @@ class DataDrivenParameter extends React.Component<any, State> {
             } else {
                 currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
             }
-            
+
             parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
 
             this.setState({
@@ -253,7 +253,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         let newValue;
         for (const opt of e.target.options) {
             if (opt.selected) {
-            values.push(opt.value);
+                values.push(opt.value);
             }
         }
         newValue = values.join(settings.delimiter);
@@ -265,7 +265,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list: [NeedsConfiguring],
             });
         } else {
-            this.setState({ currentVal: values }, () => {console.log(this.state.currentVal)});
+            this.setState({ currentVal: values }, () => { console.log(this.state.currentVal) });
             if (!settings.applyButton || settings.applyButton === 'false') {
                 parameter.changeValueAsync(newValue);
             }
@@ -273,7 +273,7 @@ class DataDrivenParameter extends React.Component<any, State> {
 
         // Refresh domain on every selection. Keeps original functionality for those with older settings.
         if (!settings.updateOnChange || settings.updateOnChange === 'true') {
-            if (!this.state.multiselect){
+            if (!this.state.multiselect) {
                 this.getParamData();
             }
         }
@@ -310,20 +310,23 @@ class DataDrivenParameter extends React.Component<any, State> {
     }
 
     public render() {
+        const multi = <div style={{ flexDirection: 'column' }}>
+            <select multiple={true} id='multi-select-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
+                {this.state.list.map((option: any) => (<option key={option.value || option.value} value={option.value}>{option.displayValue}</option>))}
+            </select>
+            <Button kind='filled' onClick={this.apply} style={{ display: (this.state.applyButton ? 'block' : 'none'), marginTop: '6px', width: '60px', height: '20px', marginLeft: 'auto' }}>Apply</Button>
+        </div>
+
+        const single = <div>
+            <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit', fontSize: '11px'}}>
+                {this.state.list.map((option: any) => <option key={option.value} value={option.value}>{option.displayValue}</option>)}
+            </DropdownSelect>
+        </div>
+
         return (
-            <React.Fragment>
-                <div style={{display: (this.state.multiselect ? 'flex' : 'none'), flexDirection: 'column'}}>
-                    <select multiple={true} id='multi-select-parameter' className='parameter' value={this.state.currentVal} onChange={this.updateParam} disabled={this.state.disabled} style={{backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map( (option: any) => ( <option key={option.value || option.value} value={option.value}>{option.displayValue}</option> ) )}
-                    </select>
-                    <Button kind='filled' onClick={this.apply} style={{ display: (this.state.applyButton ? 'block' : 'none'), marginTop: '6px', width: '60px', height: '20px', marginLeft: 'auto' }}>Apply</Button>
-                </div>
-                <div style={{display: (!this.state.multiselect ? 'flex' : 'none')}}>
-                    <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit' }}>
-                        {this.state.list.map((option: any) => <option key={option.value} value={option.value}>{option.displayValue}</option>)}
-                    </DropdownSelect>
-                </div>
-            </React.Fragment>
+            <>
+                {this.state.multiselect ? multi : single}
+            </>
         );
     }
 }
