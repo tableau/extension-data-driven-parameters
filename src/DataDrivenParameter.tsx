@@ -139,7 +139,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         });
         const settings = window.tableau.extensions.settings.getAll();
         const field = dataTable.columns.find((column: any) => column.fieldName === settings.selField);
-        const displayField = dataTable.columns.find((column: any) => column.fieldName === settings.displayField);
+
         if (!field) {
             this.setState({
                 currentVal: [NeedsConfiguring],
@@ -147,57 +147,85 @@ class DataDrivenParameter extends React.Component<any, State> {
                 list: [NeedsConfiguring],
             });
         } else {
-            let list: any[] = [];
-            // Populate list with values from data source
-            for (const row of dataTable.data) {
-                const value = settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value;
-                let displayValue = value;
-                if (displayField && settings.showDisplayValues === 'true') {
-                    displayValue = row[displayField.index].formattedValue
-                }
-                list.push({
-                    displayValue,
-                    value,
-                });
+
+            this.createList(field, dataTable);
+
+            this.setState({
+                // currentVal,
+                disabled: false,
+                firstInit: false,
+                // list,
+            });
+        }
+    }
+
+    // Populate list with values from data source
+    public createList(field: any, dataTable: any) {
+        const settings = window.tableau.extensions.settings.getAll();
+        const displayField = dataTable.columns.find((column: any) => column.fieldName === settings.displayField);
+
+        let list: any[] = [];
+        for (const row of dataTable.data) {
+            const value = settings.useFormattedValues === 'true' ? row[field.index].formattedValue : row[field.index].value;
+            let displayValue = value;
+            if (displayField && settings.showDisplayValues === 'true') {
+                displayValue = row[displayField.index].formattedValue
             }
+            list.push({
+                displayValue,
+                value,
+            });
+        }
 
-            // Remove duplicates
-            list = list.filter((item, index, array) => array.indexOf(array.find(i => i.value === item.value)) === index);
+        // Remove duplicates
+        list = list.filter((item, index, array) => array.indexOf(array.find(i => i.value === item.value)) === index);
 
-            if (settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
-                // Convert to numbers for correct sort
-                list = list.map((item) => ({ value: Number(item.value), displayValue: item.displayValue }))
-                // Sort according to settings (numerical)
-                if (settings.sort && settings.sort === 'desc') {
-                    list.sort((a, b) => b.value - a.value);
-                } else {
-                    list.sort((a, b) => a.value - b.value);
-                }
-                if (settings.dataType === 'float') {
-                    list = list.map((item) => ({ value: item.value.toLocaleString(window.tableau.extensions.environment.locale), displayValue: item.displayValue }));
-                }
+        if (settings.dataType && (settings.dataType === 'int' || settings.dataType === 'float')) {
+            // Convert to numbers for correct sort
+            list = list.map((item) => ({ value: Number(item.value), displayValue: item.displayValue }))
+            // Sort according to settings (numerical)
+            if (settings.sort && settings.sort === 'desc') {
+                list.sort((a, b) => b.value - a.value);
             } else {
-                // Sort according to settings
-                if (settings.sort && settings.sort === 'desc') {
-                    list.sort((a, b) => a.value < b.value ? 1 : -1);
-                } else {
-                    list.sort((a, b) => a.value > b.value ? 1 : -1);
-                }
+                list.sort((a, b) => a.value - b.value);
             }
-
-            // Add '(All)' according to settings
-            if (settings.includeAllValue === 'true') {
-                list.unshift({ value: '(All)', displayValue: '(All)' });
+            if (settings.dataType === 'float') {
+                list = list.map((item) => ({ value: item.value.toLocaleString(window.tableau.extensions.environment.locale), displayValue: item.displayValue }));
             }
+        } else {
+            // Sort according to settings
+            if (settings.sort && settings.sort === 'desc') {
+                list.sort((a, b) => a.value < b.value ? 1 : -1);
+            } else {
+                list.sort((a, b) => a.value > b.value ? 1 : -1);
+            }
+        }
 
+        // Add '(All)' according to settings
+        if (settings.includeAllValue === 'true') {
+            list.unshift({ value: '(All)', displayValue: '(All)' });
+        }
+
+        this.setState({
+            list,
+        }, this.matchParam);
+
+    }
+
+    // Determine whether to use current param value or first value of list based on settings
+    public matchParam = (): void => {
+        const settings = window.tableau.extensions.settings.getAll();
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
+        dashboard.findParameterAsync(settings.selParam).then((param: any) => {
+            parameter = param;
+            const list = this.state.list;
             let currentVal: any;
-            // Determine wether to use current param value or first value of list based on settings
             if ((settings.autoUpdate === 'false' || (settings.autoUpdate === 'true' && !this.state.firstInit))) {
                 if (settings.multiselect === 'true') {
                     // Use current param values if found in list, otherwise pick first of list.
                     const tablist = [];
                     for (const value of parameter.currentValue.value.split(settings.delimiter)) {
-                        if (list.find(v => v.value.toString() === value || v.value === value)) {
+                        if (list.find((v: any) => v.value.toString() === value || v.value === value)) {
                             tablist.push(value)
                         }
                     }
@@ -208,7 +236,7 @@ class DataDrivenParameter extends React.Component<any, State> {
                     }
                 } else {
                     // Use current param value if found in list, otherwise pick first of list.
-                    if (list.find(v => v.value.toString() === parameter.currentValue.value || v.value === parameter.currentValue.value)) {
+                    if (list.find((v: any) => v.value.toString() === parameter.currentValue.value || v.value === parameter.currentValue.value)) {
                         currentVal = [parameter.currentValue.value];
                     } else {
                         currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)]
@@ -218,23 +246,18 @@ class DataDrivenParameter extends React.Component<any, State> {
                 currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
             }
 
-            parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString());
-
             this.setState({
                 currentVal,
-                disabled: false,
-                firstInit: false,
-                list,
             });
-        }
+        });
     }
 
     // Adds event listener to worksheet
     public setupWsEvent() {
-        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const settings = window.tableau.extensions.settings.getAll();
+        const dashboard = window.tableau.extensions.dashboardContent.dashboard;
         const worksheet = dashboard.worksheets.find((ws: any) => ws.name === settings.selWorksheet);
-        if (!worksheet) {
+        if (!worksheet || !parameter) {
             this.setState({
                 currentVal: [NeedsConfiguring],
                 disabled: true,
@@ -243,6 +266,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         } else {
             worksheet.addEventListener(window.tableau.TableauEventType.FilterChanged, this.getParamData);
             worksheet.addEventListener(window.tableau.TableauEventType.MarkSelectionChanged, this.getParamData);
+            parameter.addEventListener(window.tableau.TableauEventType.ParameterChanged, this.matchParam);
         }
     }
 
@@ -318,7 +342,7 @@ class DataDrivenParameter extends React.Component<any, State> {
         </div>
 
         const single = <div>
-            <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit', fontSize: '11px'}}>
+            <DropdownSelect id='single-select-parameter' className='singleParameter' disabled={this.state.disabled || this.state.multiselect} kind='outline' onChange={this.updateParam} value={this.state.currentVal[0]} style={{ backgroundColor: this.state.bg, color: 'inherit', fontSize: '11px' }}>
                 {this.state.list.map((option: any) => <option key={option.value} value={option.value}>{option.displayValue}</option>)}
             </DropdownSelect>
         </div>
