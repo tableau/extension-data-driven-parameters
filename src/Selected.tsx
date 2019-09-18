@@ -1,10 +1,5 @@
 import * as React from 'react';
-
 import { Button } from '@tableau/tableau-ui';
-
-declare global {
-    interface Window { tableau: any; }
-}
 
 export interface SelectedProps {
     nextConfig?: boolean;

@@ -2,10 +2,6 @@ import * as React from 'react';
 import { Selected } from './Selected';
 import { Selector } from './Selector';
 
-declare global {
-    interface Window { tableau: any; }
-}
-
 export interface SettingProps {
     config: boolean;
     enabled: boolean;
@@ -33,5 +29,5 @@ function renderSelectElement(props: SettingProps): JSX.Element {
     const { config, enabled, list, nextConfig, onChange, onClear, onClick, selected, selecting } = props;
 
     return config ? <Selected nextConfig={nextConfig} onClear={onClear} selected={selected} selecting={selecting} /> :
-                    <Selector enabled={enabled} list={list} onChange={onChange} onClick={onClick} selected={selected} />;
+        <Selector enabled={enabled} list={list} onChange={onChange} onClick={onClick} selected={selected} />;
 }

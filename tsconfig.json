@@ -19,6 +19,9 @@
     "noEmit": true,
     "jsx": "preserve"
   },
+  "jsRules": {
+    "no-console": false
+  },
   "include": [
     "src"
   ]

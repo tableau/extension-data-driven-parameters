@@ -1,6 +1,5 @@
 import * as React from 'react';
-
-import { Button, ButtonProps, DropdownSelect, DropdownSelectProps  } from '@tableau/tableau-ui';
+import { Button, ButtonProps, DropdownSelect, DropdownSelectProps } from '@tableau/tableau-ui';
 
 export interface SelectorProps {
     enabled: boolean;
