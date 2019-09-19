@@ -95,7 +95,7 @@ class Configure extends React.Component<any, State> {
 
     // Handles selection in parameter dropdown
     public paramChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        this.setState({ parameter: e.target.value });
+        this.setState({ parameter: e.target.value }, this.listenParameter);
     };
 
     // Handles selection in field dropdown
@@ -144,7 +144,7 @@ class Configure extends React.Component<any, State> {
                         dataType: param.dataType,
                         param_config: true,
                         parameter: param.name,
-                    });
+                    }, this.listenParameter);
                     this.testWSSettings();
                 } else {
                     this.populateParamList();
@@ -176,7 +176,7 @@ class Configure extends React.Component<any, State> {
                     param_enabled: true,
                     param_list: dropdownList,
                     parameter: dropdownList[0],
-                });
+                }, this.listenParameter);
             } else {
                 this.setState({
                     param_enabled: false,
@@ -429,23 +429,28 @@ class Configure extends React.Component<any, State> {
         this.populateParamList();
     }
 
+    // Grab parameters for options
+    public listenParameter() {
+        const dashboard = tableau.extensions.dashboardContent.dashboard;
+        dashboard.getParametersAsync().then((params: any) => {
+            const dropdownList: string[] = [];
+            for (const p of params) {
+                if (p.name !== this.state.parameter) {
+                    dropdownList.push(p.name);
+                }
+            }
+            dropdownList.sort();
+            this.setState({
+                listenParamList: dropdownList,
+                listenParamName: dropdownList[0]
+            });
+        });
+    }
+
     // Once we have mounted, we call to initialize
     public componentWillMount() {
         tableau.extensions.initializeDialogAsync().then(() => {
             const settings = tableau.extensions.settings.getAll();
-            const dashboard = tableau.extensions.dashboardContent.dashboard;
-            // Grab parameters for options
-            dashboard.getParametersAsync().then((params: any) => {
-                const dropdownList: string[] = [];
-                for (const p of params) {
-                    dropdownList.push(p.name);
-                }
-                dropdownList.sort();
-                this.setState({
-                    listenParamList: dropdownList,
-                });
-            });
-
             if (settings.configured === 'true') {
                 this.setState({
                     allLabel: settings.allLabel || '(All)',
@@ -505,13 +510,7 @@ class Configure extends React.Component<any, State> {
                 <Checkbox name='listenParam' disabled={!this.state.param_config} checked={this.state.listenParam} onChange={this.checkboxChange} style={{ marginRight: '10px' }}>Update list when a parameter changes.</Checkbox>
                 <div style={{ display: 'flex', width: '150px' }}>
                     <DropdownSelect name='listenParamName' className='dropdown-select' disabled={!this.state.listenParam || !this.state.param_config} kind='line' onChange={this.listInputChange} value={this.state.listenParamName} style={{ flexGrow: 1 }}>
-                        {this.state.listenParamList.map(option => {
-                            if (option !== this.state.parameter) {
-                                return <option key={option}>{option}</option>
-                            } else {
-                                return false
-                            }
-                        })}
+                        {this.state.listenParamList.map(option => <option key={option}>{option}</option>)}
                     </DropdownSelect>
                 </div>
             </div>
