@@ -22,6 +22,7 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "release": "set PUBLIC_URL=/extension-data-driven-parameters/2.1.0&&react-scripts build && (if exist \"docs/2.1.0\" rd /s /q \"docs/2.1.0\") && move build \"docs/2.1.0\"",
+        "latest": "set PUBLIC_URL=/extension-data-driven-parameters/2.latest&&react-scripts build && (if exist \"docs/2.latest\" rd /s /q \"docs/2.latest\") && move build \"docs/2.latest\"",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
     },

@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/extension-data-driven-parameters/2.latest/static/css/main.a0b18684.chunk.css",
+    "main.js": "/extension-data-driven-parameters/2.latest/static/js/main.721e19f5.chunk.js",
+    "main.js.map": "/extension-data-driven-parameters/2.latest/static/js/main.721e19f5.chunk.js.map",
+    "runtime~main.js": "/extension-data-driven-parameters/2.latest/static/js/runtime~main.e725b044.js",
+    "runtime~main.js.map": "/extension-data-driven-parameters/2.latest/static/js/runtime~main.e725b044.js.map",
+    "static/js/2.ca9d78b0.chunk.js": "/extension-data-driven-parameters/2.latest/static/js/2.ca9d78b0.chunk.js",
+    "static/js/2.ca9d78b0.chunk.js.map": "/extension-data-driven-parameters/2.latest/static/js/2.ca9d78b0.chunk.js.map",
+    "index.html": "/extension-data-driven-parameters/2.latest/index.html",
+    "precache-manifest.bd4e306fdc934abd36676cbc7fbe28d4.js": "/extension-data-driven-parameters/2.latest/precache-manifest.bd4e306fdc934abd36676cbc7fbe28d4.js",
+    "service-worker.js": "/extension-data-driven-parameters/2.latest/service-worker.js",
+    "static/css/main.a0b18684.chunk.css.map": "/extension-data-driven-parameters/2.latest/static/css/main.a0b18684.chunk.css.map"
+  }
+}
