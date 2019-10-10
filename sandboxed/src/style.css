@@ -1,0 +1,176 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.8);
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+#container {
+    height: 100%;
+    width: 100%;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.content {
+    margin-left: 6px;
+}
+
+.header {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.8);
+	padding: 12px 0px 12px 18px;
+    display: flex;
+}
+
+.title {
+    font-family: 'Benton Sans Medium', Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.8);
+    margin: 30px 0px 18px 0px;
+}
+
+p {
+    margin: 0;
+}
+
+.selector {
+    display: flex;
+    min-height: 26px;
+    margin-bottom: 12px;
+}
+
+.selected {
+    margin-left: 10px;
+    min-height: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.footer {
+    display: flex;
+    align-items: flex-end;
+	margin: 0px 18px;
+}
+
+.btncluster {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.format {
+    display: flex;
+    margin-top: 12px;
+}
+
+.formattext {
+    width: 130px;
+}
+
+input[type="color"] {
+    /* background-color: #fff; */
+    padding: 0;
+    margin-left: 6px;
+    border: 1px solid #666666;
+    box-shadow: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    outline: 0;
+}
+
+::-webkit-color-swatch {
+    border: none;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    margin-left: 5px;
+    padding-top: 2px;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    border: 1px solid #D4D4D4;
+    border-radius: 1px;
+    background: #fff;
+    font-size: 10px;
+    padding: 8px;
+    width: 200px;
+    position: absolute;
+    z-index: 1;
+    right: -100px;
+    top: 20px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.tooltiptext ol {
+    padding: 0px 8px;
+    margin: 0px;
+}
+
+.tooltiptext li {
+    margin-top: 8px;
+}
+
+.parameter {
+    width: 100%;
+	font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	padding-left:6px;
+	border: solid 1px #CBCBCB;
+}
+
+.parameter option {
+	padding: 2px 2px 1px;
+	height: 20px;
+	display:flex;
+	align-items: center;
+}
+
+.singleParameter {
+    width: 100%;
+	min-height: 20px !important;
+}
+
+.dropdown-select {
+    flex: 1;
+    margin-left: 0;
+    width: '100%';
+}
+
+.delimiter-text-field > input {
+    font-family: 'Benton Sans', Arial, Helvetica, sans-serif;
+    padding-right: 0;
+    text-align: center;
+}
+
+/* Internet Explorer 10+ */
+select::-ms-expand {
+    visibility: hidden;
+}

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/sandboxed/node_modules
 /.pnp
 .pnp.js
 
@@ -10,6 +11,7 @@
 
 # production
 /build
+/sandboxed/build
 
 # misc
 .DS_Store
