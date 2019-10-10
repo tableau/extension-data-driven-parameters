@@ -2,7 +2,7 @@
     "port": 8080,
     "extensions": {
         "data-driven-parameters": {
-            "path": "C:\\Users\\krose\\Documents\\GitHub\\extension-data-driven-parameters\\sandboxed\\build"
+            "path": "./build"
         }
     }
 }
