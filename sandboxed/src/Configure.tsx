@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button, Checkbox, DropdownSelect, Radio, Tabs, TextField } from '@tableau/tableau-ui';
 import { Setting } from './Setting';
+import './style.css';
 const tableau = window.tableau;
 
 interface State {
