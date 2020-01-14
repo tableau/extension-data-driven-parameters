@@ -392,7 +392,7 @@ class Configure extends React.Component<any, State> {
         tableau.extensions.settings.set('displayField', this.state.displayField);
         tableau.extensions.settings.set('includeAllValue', this.state.includeAllValue && this.state.dataType === 'string');
         tableau.extensions.settings.set('listenParam', this.state.listenParam);
-        tableau.extensions.settings.set('listenParamName', this.state.listenParamName);
+        tableau.extensions.settings.set('listenParamName', this.state.listenParamName || '');
         tableau.extensions.settings.set('matchParam', this.state.matchParam);
         tableau.extensions.settings.set('multiselect', this.state.multiselect && this.state.dataType === 'string');
         tableau.extensions.settings.set('selField', this.state.field);
