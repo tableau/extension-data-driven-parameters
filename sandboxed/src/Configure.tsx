@@ -443,7 +443,7 @@ class Configure extends React.Component<any, State> {
             dropdownList.sort();
             this.setState({
                 listenParamList: dropdownList,
-                listenParamName: dropdownList[0]
+                listenParamName: dropdownList.includes(this.state.listenParamName) ? this.state.listenParamName : dropdownList[0]
             });
         });
     }

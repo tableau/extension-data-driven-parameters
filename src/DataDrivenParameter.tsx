@@ -194,7 +194,10 @@ class DataDrivenParameter extends React.Component<any, State> {
         const list = this.state.list;
         let currentVal: any[] = [];
         dashboard.findParameterAsync(settings.selParam).then((parameter: any) => {
-            if (this.state.firstInit && settings.autoUpdate === 'false') {
+            if ((this.state.firstInit && settings.autoUpdate === 'true')) {
+                // Then push new values
+                currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
+            } else {
                 // Then match parameter value
                 if (settings.multiselect === 'true') {
                     const tablist = [];
@@ -209,25 +212,18 @@ class DataDrivenParameter extends React.Component<any, State> {
                         currentVal = [parameter.currentValue.value];
                     }
                 }
-                if (currentVal.length > 0) {
-                    // If param value is found udate to match
-                    this.setState({
-                        currentVal,
-                    });
-                } else {
-                    // otherwise push new values
+                if (currentVal.length === 0) {
+                    // If no match, use first value
                     currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
-                    parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString()).then(console.log);
                 }
-            } else {
-                // Then push new values
-                currentVal = [(settings.includeAllValue === 'true' ? list[1].value : list[0].value)];
-                parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString()).then(console.log);
             }
+
+            parameter.changeValueAsync(settings.multiselect ? currentVal.join(settings.delimiter) : currentVal.toString()).then(console.log);
 
             this.setState({
                 disabled: false,
                 firstInit: false,
+                currentVal
             });
         });
     }
