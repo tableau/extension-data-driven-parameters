@@ -241,8 +241,10 @@ class DataDrivenParameter extends React.Component<any, State> {
                     list: [NeedsConfiguring],
                 });
             } else {
-                unregister[0] = worksheet.addEventListener(tableau.TableauEventType.FilterChanged, this.getParamData);
-                unregister[1] = worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, this.getParamData);
+                if (!settings.updateOnSelectionFix || settings.updateOnSelectionFix === 'true') {
+                    unregister[0] = worksheet.addEventListener(tableau.TableauEventType.FilterChanged, this.getParamData);
+                    unregister[1] = worksheet.addEventListener(tableau.TableauEventType.MarkSelectionChanged, this.getParamData);
+                }
                 if (settings.matchParam === 'true') {
                     unregister[2] = parameter.addEventListener(tableau.TableauEventType.ParameterChanged, this.matchListener);
                 }

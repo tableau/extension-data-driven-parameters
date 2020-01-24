@@ -18,7 +18,7 @@ interface State {
     field_config: boolean,
     field_enabled: boolean,
     field_list: string[],
-    updateOnSelection: boolean,
+    updateOnSelectionFix: boolean,
     includeAllValue: boolean,
     listenParam: boolean,
     listenParamName: string,
@@ -61,7 +61,7 @@ class Configure extends React.Component<any, State> {
         field_config: false,
         field_enabled: false,
         field_list: [],
-        updateOnSelection: false,
+        updateOnSelectionFix: false,
         includeAllValue: false,
         listenParam: false,
         listenParamName: '',
@@ -402,7 +402,7 @@ class Configure extends React.Component<any, State> {
         tableau.extensions.settings.set('sort', this.state.sort);
         tableau.extensions.settings.set('txt', this.state.txt);
         tableau.extensions.settings.set('updateOnChange', this.state.updateOnChange);
-        tableau.extensions.settings.set('updateOnSelection', this.state.updateOnSelection);
+        tableau.extensions.settings.set('updateOnSelectionFix', this.state.updateOnSelectionFix);
         tableau.extensions.settings.set('useFormattedValues', this.state.useFormattedValues && this.state.dataType === 'string');
         tableau.extensions.settings.saveAsync().then(() => {
             tableau.extensions.ui.closeDialog(this.state.worksheet);
@@ -472,7 +472,7 @@ class Configure extends React.Component<any, State> {
                     sort: settings.sort || 'asc',
                     txt: settings.txt || '#333333',
                     updateOnChange: settings.updateOnChange === 'true' || false,
-                    updateOnSelection: settings.updateOnSelection === 'true' || false,
+                    updateOnSelectionFix: settings.updateOnSelectionFix ? settings.updateOnSelectionFix === 'true' || false : true,
                     useFormattedValues: settings.useFormattedValues === 'true' || false,
                 });
                 this.testParamSettings();
@@ -496,7 +496,7 @@ class Configure extends React.Component<any, State> {
                 <Radio checked={this.state.sort === 'desc'} onChange={this.sortChange} name='sorting' value='desc' style={{ margin: '0px 12px' }}>Descending (Z-A)</Radio>
             </div>
             <div className='option'>
-                <Checkbox name='updateOnSelection' checked={this.state.updateOnSelection} onChange={this.checkboxChange} style={{ flexGrow: 1 }}>Filter list based on worksheet selections</Checkbox>
+                <Checkbox name='updateOnSelectionFix' checked={this.state.updateOnSelectionFix} onChange={this.checkboxChange} style={{ flexGrow: 1 }}>Filter list based on worksheet selections</Checkbox>
             </div>
             <div className='option'>
                 <Checkbox name='autoUpdate' checked={this.state.autoUpdate} onChange={this.checkboxChange} style={{ flexGrow: 1 }}>Automatically reset values on dashboard load.</Checkbox>
