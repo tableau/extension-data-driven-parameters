@@ -23,7 +23,7 @@ Download the Data-Driven Parameter [manifest file](https://extensiongallery.tabl
 ```
 4. In the command line run `yarn build` to build the extension with the new homepage.
 5. Copy the files in `build` to your web server at the path you specified in Step 3.
-6. Update the existing or create a new manifest file (.trex) to point to the URL where you are hosting the extension.
+6. Update the existing or create a new manifest file (.trex) to point to the URL where you are hosting the extension with `/#/parameter` at the end. For example: `http://localhost:8080/#/parameter`. 
 
 ## Support
 If you have questions about the extension or found a bug please open a new [issue](https://github.com/tableau/extension-data-driven-parameters/issues).
