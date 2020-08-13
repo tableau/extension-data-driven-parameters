@@ -1,50 +1,50 @@
 {
-    "name": "data-driven-parameters",
-    "version": "1.0.0",
-    "private": true,
-    "homepage": "https://tableau.github.io/extension-data-driven-parameters/",
-    "dependencies": {
-        "@tableau/extensions-api-types": "^1.3.1",
-        "@tableau/tableau-ui": "^2.2.1",
-        "@types/jest": "24.0.15",
-        "@types/node": "12.6.0",
-        "@types/react": "16.8.23",
-        "@types/react-dom": "16.8.4",
-        "@types/react-router-dom": "^4.3.4",
-        "react": "^16.8.6",
-        "react-app-polyfill": "^1.0.1",
-        "react-dom": "^16.8.6",
-        "react-router-dom": "^5.0.1",
-        "react-scripts": "3.0.1",
-        "typescript": "3.5.2"
-    },
-    "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "release": "set PUBLIC_URL=/extension-data-driven-parameters/2.1.0&&react-scripts build && (if exist \"docs/2.1.0\" rd /s /q \"docs/2.1.0\") && move build \"docs/2.1.0\"",
-        "latest": "set PUBLIC_URL=/extension-data-driven-parameters/2.latest&&react-scripts build && (if exist \"docs/2.latest\" rd /s /q \"docs/2.latest\") && move build \"docs/2.latest\"",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": "react-app"
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "ie 11",
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "devDependencies": {
-        "@types/enzyme": "^3.10.3",
-        "enzyme": "^3.10.0",
-        "enzyme-adapter-react-16": "^1.14.0"
-    }
+  "name": "data-driven-parameters",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "https://tableau.github.io/extension-data-driven-parameters/",
+  "dependencies": {
+    "@tableau/extensions-api-types": "^1.3.1",
+    "@tableau/tableau-ui": "^2.2.1",
+    "@types/jest": "^24.0.15",
+    "@types/node": "^12.6.0",
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.4",
+    "@types/react-router-dom": "^4.3.4",
+    "react": "^16.8.6",
+    "react-app-polyfill": "^1.0.1",
+    "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.1",
+    "react-scripts": "^3.0.1",
+    "typescript": "^3.5.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "release": "set PUBLIC_URL=/extension-data-driven-parameters/2.1.0&&react-scripts build && (if exist \"docs/2.1.0\" rd /s /q \"docs/2.1.0\") && move build \"docs/2.1.0\"",
+    "latest": "set PUBLIC_URL=/extension-data-driven-parameters/2.latest&&react-scripts build && (if exist \"docs/2.latest\" rd /s /q \"docs/2.latest\") && move build \"docs/2.latest\"",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "ie 11",
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/enzyme": "^3.10.3",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-16": "^1.14.0"
+  }
 }
